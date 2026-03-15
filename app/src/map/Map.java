@@ -1,9 +1,4 @@
-package Map;
-
-import GameWindow.GameWindow;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
+package map;
 
 public class Map {
     private String name;
@@ -22,9 +17,11 @@ public class Map {
     public void setHeight(int height) {
         this.height = height;
     }
-
     public void setWidth(int width) {
         this.width = width;
+    }
+    public void setGrid(int [][] grid) {
+        this.grid = grid;
     }
     public int[][] getGrid() {
         return grid;

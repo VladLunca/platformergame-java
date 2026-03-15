@@ -1,13 +1,12 @@
-package Graphics.Assets;
+package graphics.assets;
 
-import Graphics.ImageLoader;
-import Graphics.SpriteSheet;
+import graphics.ImageLoader;
+import graphics.SpriteSheet;
 
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
-public class TileFactory implements AssetsFactory{
-
+public class TileAssetsFactory implements AssetsFactory{
     @Override
     public void load(Map<String, BufferedImage> images) {
         SpriteSheet level1 = new SpriteSheet(ImageLoader.LoadImage("/textures/maps/level1map.png"));

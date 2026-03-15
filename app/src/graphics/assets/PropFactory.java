@@ -1,7 +1,7 @@
-package Graphics.Assets;
+package graphics.assets;
 
-import Graphics.ImageLoader;
-import Graphics.SpriteSheet;
+import graphics.ImageLoader;
+import graphics.SpriteSheet;
 
 import java.awt.image.BufferedImage;
 import java.util.Map;

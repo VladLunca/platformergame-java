@@ -1,4 +1,4 @@
-package GameWindow;
+package gamewindow;
 
 import javax.swing.*;
 import java.awt.*;

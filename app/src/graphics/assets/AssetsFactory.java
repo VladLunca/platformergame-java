@@ -1,4 +1,4 @@
-package Graphics.Assets;
+package graphics.assets;
 
 import java.awt.image.BufferedImage;
 import java.util.Map;

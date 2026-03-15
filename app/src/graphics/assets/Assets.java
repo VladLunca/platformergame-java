@@ -1,4 +1,4 @@
-package Graphics.Assets;
+package graphics.assets;
 
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -13,9 +13,9 @@ public class Assets {
             return images.get(key);
         }
 
-        public void Init() {
+        public static void Init() {
             List<AssetsFactory> factories = List.of(
-                    new TileFactory(),
+                    new TileAssetsFactory(),
                     new PropFactory()
             );
 

@@ -1,4 +1,4 @@
-package Graphics;
+package graphics;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -10,6 +10,8 @@ public class ImageLoader {
     {
         try
         {
+            //doar pt debug
+           // System.out.println(path);
             return ImageIO.read(Objects.requireNonNull(ImageLoader.class.getResource(path)));
         }
         catch(IOException e)

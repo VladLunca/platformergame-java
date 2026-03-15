@@ -1,7 +1,12 @@
-import GameWindow.GameWindow;
+import gamewindow.GameWindow;
+import graphics.assets.Assets;
+import map.MapManager;
+import utils.LevelMaps;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Objects;
 
 public  class Game implements Runnable {
@@ -11,21 +16,28 @@ public  class Game implements Runnable {
     private BufferStrategy bs;
     private Graphics g;
     private static  Game instance;
-    private  Game(String title, int width, int height)
-    {
+    private static MapManager mapManager;
+    private int level=1;
+    private  Game(String title, int width, int height) throws IOException {
         wnd = new GameWindow(title, width, height);
         runState = false;
+        mapManager= MapManager.createMapManager("/maps/maps.json");
     }
     public static Game createGame(String title, int width, int height)
     {
-        return Objects.requireNonNullElseGet(instance, () -> new Game(title, width, height));
+        return Objects.requireNonNullElseGet(instance, () -> {
+            try {
+                return new Game(title, width, height);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
     private void InitGame()
     {
         /// Este construita fereastra grafica.
         wnd.BuildGameWindow();
-        ///Personajele
-        /// Se incarca toate elementele grafice
+        Assets.Init();
     }
     public synchronized void StartGame()
     {
@@ -109,10 +121,16 @@ public  class Game implements Runnable {
         }
         g = bs.getDrawGraphics();
         g.clearRect(0, 0, wnd.GetWndWidth(), wnd.GetWndHeight());
+
         Color mycolor=new Color(0,140,220);
         g.setColor( mycolor);
         g.fillRect(0,0,wnd.GetWndWidth(), wnd.GetWndHeight());
-        g.setColor(Color.BLACK);
+        LevelMaps mapName = switch (level) {
+            case 2 -> LevelMaps.redMap;
+            case 3 -> LevelMaps.purpleMap;
+            default -> LevelMaps.greenMap;
+        };
+        mapManager.drawMap(mapName.name(), g);
         bs.show();
         g.dispose();
     }
