@@ -18,23 +18,26 @@ import java.util.Objects;
 
 public class MapManager {
     private static MapManager instance = null;// avem un singur map manager(Sablon Singletone)
-    private static final java.util.Map <String,Map> maps =  new HashMap<>();
-    private String fileName;
-    public static  MapManager createMapManager(String filePath) throws IOException {
+    private static final java.util.Map<String, Map> MAPS = new HashMap<>();
+    private final String FILE_NAME;
+
+    public static MapManager createMapManager(String filePath) throws IOException {
         if (instance == null) {
             instance = new MapManager(filePath);
         }
         return instance;
     }
+
     private MapManager(String path) throws IOException {
-        this.fileName = path;
+        this.FILE_NAME = path;
         loadMaps();
     }
+
     private String readFile() throws IOException {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(
-                        Objects.requireNonNull(getClass().getResourceAsStream(this.fileName))
+                        Objects.requireNonNull(getClass().getResourceAsStream(this.FILE_NAME))
                 )
         )) {
             String line;
@@ -44,9 +47,9 @@ public class MapManager {
         }
         return sb.toString();
     }
+
     private void loadMaps() throws IOException {
-      String rawJson = readFile();
-      //System.out.println(rawJson); used at deabug
+        String rawJson = readFile();
         Gson gson = new Gson();
         JsonObject root = gson.fromJson(rawJson, JsonObject.class);
 
@@ -65,15 +68,17 @@ public class MapManager {
                     grid[i][j] = row.get(j).getAsInt();
                 }
             }
-            Map m =new Map(mapName,rows,cols);
+            Map m = new Map(mapName, rows, cols);
             m.setGrid(grid);
-            maps.put(mapName, m);
+            MAPS.put(mapName, m);
         }
 
     }
+
     private Map getMap(String mapName) {
-        return maps.getOrDefault(mapName, null);
+        return MAPS.getOrDefault(mapName, null);
     }
+
     public void drawMap(String mapName, Graphics g) {
         Map map = getMap(mapName);
         if (map != null) {
@@ -81,8 +86,8 @@ public class MapManager {
             int height = map.getHeight();
             for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
-                    Tile t = new Tile(Assets.get(TileID.fromId(map.getGrid()[i][j])),map.getGrid()[i][j]);
-                    g.drawImage(t.getImage(), j * Tile.TILE_WIDTH, i * Tile.TILE_HEIGHT,Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);
+                    Tile t = new Tile(Assets.get(TileID.fromId(map.getGrid()[i][j]))[0], map.getGrid()[i][j]);
+                    g.drawImage(t.getImage(), j * Tile.TILE_WIDTH, i * Tile.TILE_HEIGHT, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
                 }
             }
         }

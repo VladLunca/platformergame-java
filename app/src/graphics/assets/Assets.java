@@ -7,16 +7,19 @@ import java.util.Map;
 
 public class Assets {
 
-        private static final Map<String, BufferedImage> images = new HashMap<>();
+        private static final Map<String, BufferedImage[]> images = new HashMap<>();
 
-        public static BufferedImage get(String key) {
+        public static BufferedImage[] get(String key) {
             return images.get(key);
         }
 
         public static void Init() {
             List<AssetsFactory> factories = List.of(
                     new TileAssetsFactory(),
-                    new PropFactory()
+                    new PropFactory(),
+                    new PlayerFactory(),
+                    new DragonFactory(),
+                    new SnakeFactory()
             );
 
             for (AssetsFactory factory : factories) {
