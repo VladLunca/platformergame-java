@@ -4,7 +4,6 @@
 | Asset | Author | License | Link |
 |-------|--------|---------|------|
 | **Chibi Knight** | Segel T | — | [Facebook](https://www.facebook.com/Segel.T) |
-| **Classic-Knight [Animated]** | Disthron *(edit of Jason-Em / GrafxKid's Classic Hero)* | CC0 | [OpenGameArt](https://opengameart.org/content/classic-knight-animated) |
 
 ---
 
