@@ -17,12 +17,14 @@
 ---
 
 ### 🏰 Tilesets & Environments
-
+ 
 | Asset | Author | License | Link |
 |-------|--------|---------|------|
 | **Platformer Castle Tileset** | thomaswp (PlatForge) — Artists: Summer Thaxton & Stafford McIntyre | CC BY-SA 3.0 | [OpenGameArt](https://opengameart.org/content/platformer-castle-tileset) |
-| **Platformer Night Tileset** | thomaswp (PlatForge) — Artists: Summer Thaxton & Hannah Cohan | CC BY-SA 3.0 | [OpenGameArt](https://opengameart.org/content/platformer-night-tileset) |
+| **Platformer Night Tileset** | thomaswp (PlatForge) | CC BY-SA 3.0 | [OpenGameArt](https://opengameart.org/content/platformer-night-tileset) |
 | **Platformer Grass Tileset** | thomaswp (PlatForge) — Artists: Summer Thaxton & Hannah Cohan | CC BY-SA 3.0 | [OpenGameArt](https://opengameart.org/content/platformer-grass-tileset) |
+| **Golden Treasures** | Ironthunder *(special thanks to Marcus Brumfield)* | CC BY 4.0 | [OpenGameArt](https://opengameart.org/content/golden-treasures) |
+ 
 
 ---
 
@@ -34,7 +36,7 @@
 
 ---
 
-
+⚠️ **Note:** Some assets may have been resized or scaled to fit the game's requirements. Original files remain the property of their respective authors.
 
 ## ❤️ Special Thanks
 
