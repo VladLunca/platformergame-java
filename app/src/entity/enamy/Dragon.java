@@ -1,6 +1,8 @@
 package entity.enamy;
 
 import entity.Entity;
+import entity.player.Player;
+import gamewindow.GameWindow;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,18 +20,24 @@ public class Dragon extends Entity {
 
     }
 
-    @Override
     public void onCollision(Entity other) {
 
     }
 
     @Override
-    public void draw(Graphics g) {
+    public void draw(Graphics g, GameWindow wnd, Player p) {
 
     }
 
     @Override
-    public void drawHitbox(Graphics g) {
+    public void draw(Graphics g, GameWindow wnd, map.Map map) {
 
     }
+
+    @Override
+    public void drawHitbox(Graphics g, GameWindow wnd) {
+
+    }
+
+
 }

@@ -1,5 +1,6 @@
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
+import levelmanager.LevelManager;
 import map.MapManager;
 import utils.LevelMaps;
 
@@ -17,11 +18,12 @@ public  class Game implements Runnable {
     private Graphics g;
     private static  Game instance;
     private static MapManager mapManager;
-    private int level=1;
+    private static LevelManager levelManager;
     private  Game(String title, int width, int height) throws IOException {
         wnd = new GameWindow(title, width, height);
         runState = false;
-        mapManager= MapManager.createMapManager("/maps/maps.json");
+        mapManager= MapManager.createMapManager("/textures/maps/maps.json");
+        levelManager = LevelManager.createLevelManager(mapManager);
     }
     public static Game createGame(String title, int width, int height)
     {
@@ -38,6 +40,7 @@ public  class Game implements Runnable {
         /// Este construita fereastra grafica.
         wnd.BuildGameWindow();
         Assets.Init();
+        levelManager.loadLevel();
     }
     public synchronized void StartGame()
     {
@@ -89,7 +92,7 @@ public  class Game implements Runnable {
             oldTime = currentTime;
             if(delta>=1)
             {
-                Update();
+                update();
                 updates++;
                 delta--;
             }
@@ -100,8 +103,9 @@ public  class Game implements Runnable {
             }
         }
     }
-    private void Update()
+    private void update()
     {
+        levelManager.update();
         return;
     }
     private void Draw()
@@ -125,12 +129,7 @@ public  class Game implements Runnable {
         Color mycolor=new Color(0,140,220);
         g.setColor( mycolor);
         g.fillRect(0,0,wnd.GetWndWidth(), wnd.GetWndHeight());
-        LevelMaps mapName = switch (level) {
-            case 2 -> LevelMaps.redMap;
-            case 3 -> LevelMaps.purpleMap;
-            default -> LevelMaps.greenMap;
-        };
-        mapManager.drawMap(mapName.name(), g);
+        levelManager.draw(g,wnd);
         bs.show();
         g.dispose();
     }

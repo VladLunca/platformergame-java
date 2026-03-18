@@ -4,15 +4,21 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import entity.Entity;
+import entity.enamy.Dragon;
+import entity.enamy.Snake;
 import graphics.assets.Assets;
 import graphics.tiles.Tile;
 import utils.TileID;
+
 
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -30,6 +36,7 @@ public class MapManager {
 
     private MapManager(String path) throws IOException {
         this.FILE_NAME = path;
+        instance = this;
         loadMaps();
     }
 
@@ -68,18 +75,35 @@ public class MapManager {
                     grid[i][j] = row.get(j).getAsInt();
                 }
             }
-            Map m = new Map(mapName, rows, cols);
+
+            List<Entity> enemies = new ArrayList<>();
+            if (mapObj.has("enemies")) {
+                JsonArray enemiesArray = mapObj.get("enemies").getAsJsonArray();
+                for (JsonElement el : enemiesArray) {
+                    JsonObject enemyObj = el.getAsJsonObject();
+                    String type = enemyObj.get("type").getAsString();
+                    int x = enemyObj.get("x").getAsInt();
+                    int y = enemyObj.get("y").getAsInt();
+                    int lives = enemyObj.get("lives").getAsInt();
+                    switch (type) {
+                        case "snake" -> enemies.add(new Snake(x, y, lives));
+                        case "dragon" -> enemies.add(new Dragon(x, y, lives));
+                    }
+                }
+            }
+            Map m = new Map(mapName, rows, cols, enemies);
             m.setGrid(grid);
             MAPS.put(mapName, m);
         }
 
     }
 
-    private Map getMap(String mapName) {
+    public Map getMap(String mapName) {
         return MAPS.getOrDefault(mapName, null);
     }
-
-    public void drawMap(String mapName, Graphics g) {
+}
+    // Used at debug
+ /*   public void drawMap(String mapName, Graphics g) {
         Map map = getMap(mapName);
         if (map != null) {
             int width = map.getWidth();
@@ -90,6 +114,11 @@ public class MapManager {
                     g.drawImage(t.getImage(), j * Tile.TILE_WIDTH, i * Tile.TILE_HEIGHT, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
                 }
             }
+          //  Entity[] enemies = map.getEnemies().toArray(new Entity[0]);
+            for (int i = 0; i < enemies.length; i++) {
+           //    enemies[i].draw(g);
+            }
+
         }
     }
-}
+}*/

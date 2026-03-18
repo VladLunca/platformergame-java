@@ -11,7 +11,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../gson-2.10.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../gson-2.13.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

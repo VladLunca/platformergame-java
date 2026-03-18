@@ -1,16 +1,30 @@
 package entity.player;
 
 import entity.Entity;
+import gamewindow.GameWindow;
+import graphics.assets.Assets;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Player extends Entity {
     private static Player instance = null;
-    private Map<String, BufferedImage[]> animations;
+    private Map<String, BufferedImage[]> animations =  new HashMap<String, BufferedImage[]>();
     private Player(int mapY, int mapX, int health) {
         super(mapX, mapY, health);
+        hitbox.setSize(64,64);
+        animations.put("playerRunLeft", Assets.get("playerRunLeft"));
+        animations.put("playerRunRight",Assets.get("playerRunRight"));
+        animations.put("playerAttackRight",Assets.get("playerAttackRight"));
+        animations.put("playerAttackLeft",Assets.get("playerAttackLeft"));
+        animations.put("playerJumpLeft",Assets.get("playerJumpLeft"));
+        animations.put("playerJumpRight",Assets.get("playerJumpRight"));
+        animations.put("playerIdleRight",Assets.get("playerIdleRight"));
+        animations.put("playerIdleLeft",Assets.get("playerIdleLeft"));
+        animations.put("playerHurtRight",Assets.get("playerHurtRight"));
+        animations.put("playerHurtLeft",Assets.get("playerHurtLeft"));
         instance = this;
     }
     public static Player createPlayer(int x, int y, int health) {
@@ -22,10 +36,20 @@ public class Player extends Entity {
     }
     @Override
     public void update() {}
-    @Override
+
     public void onCollision(Entity other) {}
+
     @Override
-    public void draw(Graphics g) {}
+    public void draw(Graphics g, GameWindow wnd, Player p) {
+
+    }
+
     @Override
-    public void drawHitbox(Graphics g) {}
+    public void draw(Graphics g, GameWindow wnd, map.Map map) {
+        cameraX = wnd.GetWndWidth() / 2;
+        cameraY = wnd.GetWndHeight() / 2;
+        g.drawImage(animations.get("playerIdleLeft")[0],cameraX, cameraY , hitbox.width, hitbox.height,null);
+    }
+    @Override
+    public void drawHitbox(Graphics g, GameWindow wnd){}
 }
