@@ -5,10 +5,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import entity.Entity;
+import entity.EntityFactory;
 import entity.enamy.Dragon;
 import entity.enamy.Snake;
 import graphics.assets.Assets;
 import graphics.tiles.Tile;
+import utils.EntityTypes;
 import utils.TileID;
 
 
@@ -85,17 +87,14 @@ public class MapManager {
                     int x = enemyObj.get("x").getAsInt();
                     int y = enemyObj.get("y").getAsInt();
                     int lives = enemyObj.get("lives").getAsInt();
-                    switch (type) {
-                        case "snake" -> enemies.add(new Snake(x, y, lives));
-                        case "dragon" -> enemies.add(new Dragon(x, y, lives));
-                    }
+                    EntityTypes entityType = EntityTypes.valueOf(type.toUpperCase().trim());
+                    enemies.add(EntityFactory.create(entityType,x,y,lives));
                 }
             }
             Map m = new Map(mapName, rows, cols, enemies);
             m.setGrid(grid);
             MAPS.put(mapName, m);
         }
-
     }
 
     public Map getMap(String mapName) {

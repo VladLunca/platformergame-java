@@ -8,8 +8,8 @@ import java.util.Objects;
 
 public class Tile {
     public static HashMap<Integer,Tile> usedTiles = new HashMap<Integer,Tile>();
-    public static final int TILE_WIDTH  = 32;
-    public static final int TILE_HEIGHT = 32;
+    public static final int TILE_WIDTH  = 64;
+    public static final int TILE_HEIGHT = 64;
     private final BufferedImage image;
     private final int id;
     public Tile(BufferedImage image,int id) {

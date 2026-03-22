@@ -42,29 +42,33 @@ public class LevelManager {
                 case 3 ->  mapManager.getMap(LevelMaps.purpleMap.name());
                 default -> throw new IllegalStateException("Unexpected value: " + level);
             };
-            player = Player.createPlayer(1,1, 3);
+            player= Player.createPlayer(10 * Tile.TILE_WIDTH,15 * Tile.TILE_HEIGHT, 3);
     }
     public void draw(Graphics g, GameWindow wnd) {
-        player.draw(g,wnd,currentMap);
-        for(int i=0; i<currentMap.getHeight();i++) {
-            for (int j = 0; j < currentMap.getWidth(); j++) {
+        int drawStartX = (player.getMapX() - wnd.GetWndWidth()/ 2) / Tile.TILE_WIDTH;
+        int drawStartY = (player.getMapY() - wnd.GetWndHeight() / 2) / Tile.TILE_HEIGHT;
+        int drawStopX = (player.getMapX() + wnd.GetWndWidth() / 2) / Tile.TILE_WIDTH;
+        int drawStopY =  (player.getMapY()+ wnd.GetWndHeight()/ 2) / Tile.TILE_HEIGHT;
+        drawStartX = Math.max(0, drawStartX);
+        drawStartY = Math.max(0, drawStartY);
+        drawStopX  = Math.min(currentMap.getWidth(),  drawStopX);
+        drawStopY  = Math.min(currentMap.getHeight(), drawStopY);
+        int width = Tile.TILE_WIDTH * (drawStopX - drawStartX)/(wnd.GetWndWidth() / Tile.TILE_WIDTH);
+        int height =Tile.TILE_HEIGHT * (drawStopY - drawStartY)/(wnd.GetWndHeight() / Tile.TILE_HEIGHT);
+        for (int i = drawStartY; i < drawStopY; i++) {
+            for (int j = drawStartX; j < drawStopX; j++) {
                 int nr = currentMap.getGrid()[i][j];
-                int x = j * Tile.TILE_WIDTH - player.getMapX() + player.getCameraX();
-                int y = i * Tile.TILE_HEIGHT - player.getMapY() + player.getCameraY();
-                if ((j - 1) * Tile.TILE_WIDTH < player.getMapX() + player.getCameraX() &&
-                        (j + 1) * Tile.TILE_WIDTH > player.getMapX() - player.getCameraX() &&
-                        (i - 1) * Tile.TILE_HEIGHT < player.getMapY() + player.getCameraY() &&
-                        (i + 1) * Tile.TILE_HEIGHT > player.getMapY() - player.getCameraY()
-                ) {
-                    Tile t = new Tile(Assets.get(TileID.fromId(nr))[0], nr);
-                    g.drawImage(t.getImage(), j * Tile.TILE_WIDTH, i * Tile.TILE_HEIGHT, Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
-                }
-
+                Tile t = new Tile(Assets.get(TileID.fromId(nr))[0], nr);
+                g.drawImage(t.getImage(),
+                        (j - drawStartX) * width,
+                        (i - drawStartY) * height,
+                        width, height, null);
             }
         }
         for(Entity e: enemies){
             e.draw(g,wnd,player);
         }
+        player.draw(g,wnd,currentMap);
     }
 
     public void update() {
@@ -72,5 +76,4 @@ public class LevelManager {
         for(Entity e: enemies){
             e.update();
         }
-    }
-}
+    }}

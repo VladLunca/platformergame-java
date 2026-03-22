@@ -47,5 +47,13 @@ public abstract class Entity {
     public int getHealth() {
         return health;
     }
+
+    public void setCameraX(int i) {
+        this.cameraX = i;
+    }
+
+    public void setCameraY(int i) {
+        this.cameraY = i;
+    }
 }
 

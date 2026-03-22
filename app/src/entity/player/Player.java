@@ -3,6 +3,7 @@ package entity.player;
 import entity.Entity;
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
+import graphics.tiles.Tile;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class Player extends Entity {
     private static Player instance = null;
     private Map<String, BufferedImage[]> animations =  new HashMap<String, BufferedImage[]>();
-    private Player(int mapY, int mapX, int health) {
+    private Player( int mapX, int mapY, int health) {
         super(mapX, mapY, health);
         hitbox.setSize(64,64);
         animations.put("playerRunLeft", Assets.get("playerRunLeft"));
@@ -27,9 +28,9 @@ public class Player extends Entity {
         animations.put("playerHurtLeft",Assets.get("playerHurtLeft"));
         instance = this;
     }
-    public static Player createPlayer(int x, int y, int health) {
+    public static Player createPlayer(int mapX, int mapY, int health) {
         if(instance == null) {
-            return new Player(x, y, health);
+            return new Player(mapX, mapY, health);
         }
         System.out.println("You can't create 2 players.");
         return instance;
@@ -48,7 +49,7 @@ public class Player extends Entity {
     public void draw(Graphics g, GameWindow wnd, map.Map map) {
         cameraX = wnd.GetWndWidth() / 2;
         cameraY = wnd.GetWndHeight() / 2;
-        g.drawImage(animations.get("playerIdleLeft")[0],cameraX, cameraY , hitbox.width, hitbox.height,null);
+        g.drawImage(animations.get("playerIdleLeft")[0],cameraX, cameraY , Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);
     }
     @Override
     public void drawHitbox(Graphics g, GameWindow wnd){}

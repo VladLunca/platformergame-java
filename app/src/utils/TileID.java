@@ -1,12 +1,12 @@
 package utils;
 
 public enum TileID {
-    SKY             (0,  "grassLevel1"),
-    GRASS_LEVEL1    (1,  "soilLevel1"),
-    SOIL_LEVEL1     (2,  "tortaLevel2"),
+    GRASS_LEVEL1   (0,  "grassLevel1"),
+    SOIL_LEVEL1   (1,  "soilLevel1"),
+    TORTA_LEVEL2    (2,  "tortaLevel2"),
     PLANTS_LEVEL1   (3,  "plantsLevel1"),
     TREE_LEVEL1     (4,  "treeLevel1"),
-    TORTA_LEVEL2    (5,  "sky"),
+    SKY  (5,  "sky"),
     LADDER_LEVEL2   (6,  "ladderLevel2"),
     SOIL_LEVEL2     (7,  "soilLevel2"),
     GRASS_LEVEL2    (8,  "grassLevel2"),
