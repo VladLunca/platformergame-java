@@ -72,7 +72,7 @@ public class LevelManager {
     }
 
     public void update() {
-        player.update();
+        player.update(currentMap);
         for(Entity e: enemies){
             e.update();
         }

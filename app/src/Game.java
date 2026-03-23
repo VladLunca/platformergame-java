@@ -106,6 +106,7 @@ public  class Game implements Runnable {
     private void update()
     {
         levelManager.update();
+
         return;
     }
     private void Draw()

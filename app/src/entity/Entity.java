@@ -23,6 +23,11 @@ public abstract class Entity {
         this.health = health;
     }
     public abstract void update();
+
+    public abstract void update(Map map);
+
+    public abstract void update(map.Map map);
+
     public abstract void draw(Graphics g, GameWindow wnd, Player p);
 
     public abstract void draw(Graphics g, GameWindow wnd, map.Map map);

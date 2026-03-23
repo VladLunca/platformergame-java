@@ -28,6 +28,17 @@ public class Player extends Entity {
         animations.put("playerHurtLeft",Assets.get("playerHurtLeft"));
         instance = this;
     }
+
+    @Override
+    public void update() {
+
+    }
+
+    @Override
+    public void update(Map map) {
+
+    }
+
     public static Player createPlayer(int mapX, int mapY, int health) {
         if(instance == null) {
             return new Player(mapX, mapY, health);
@@ -36,7 +47,9 @@ public class Player extends Entity {
         return instance;
     }
     @Override
-    public void update() {}
+    public void update(map.Map map) {
+
+    }
 
     public void onCollision(Entity other) {}
 
