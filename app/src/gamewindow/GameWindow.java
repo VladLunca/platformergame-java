@@ -1,5 +1,7 @@
 package gamewindow;
 
+import handle.KeyHandler;
+
 import javax.swing.*;
 import java.awt.*;
 public class GameWindow
@@ -37,6 +39,13 @@ public class GameWindow
         wndFrame.add(canvas);
         wndFrame.setFocusable(true);
         wndFrame.pack();
+
+        KeyHandler keyHandler = new KeyHandler();
+        wndFrame.addKeyListener(keyHandler);
+        wndFrame.setFocusable(true);
+        wndFrame.requestFocus();         // ← frame-ul primește focus automat
+
+        wndFrame.setVisible(true);
     }
 
     public  int GetWndWidth()

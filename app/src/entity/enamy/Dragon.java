@@ -20,6 +20,11 @@ public class Dragon extends Entity {
 
     }
 
+    @Override
+    public void update(map.Map map) {
+
+    }
+
     public void onCollision(Entity other) {
 
     }

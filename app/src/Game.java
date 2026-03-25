@@ -39,6 +39,7 @@ public  class Game implements Runnable {
     {
         /// Este construita fereastra grafica.
         wnd.BuildGameWindow();
+
         Assets.Init();
         levelManager.loadLevel();
     }
@@ -73,41 +74,38 @@ public  class Game implements Runnable {
     @Override
     public void run() {
         InitGame();
+
         long oldTime = System.nanoTime();
-        long prevTime = System.nanoTime();
         long currentTime;
+
         double delta = 0;
 
-
-        final int framesPerSecond = 60; /*!< Constanta intreaga initializata cu numarul de frame-uri pe secunda.*/
         final int ups_frame = 60;
-        final double timeFrame = (double) 1000000000 / framesPerSecond; /*!< Durata unui frame in nanosecunde.*/
+        final int fps_limit = 60;
         double timePerUpdate = (double) 1000000000 / ups_frame;
-        double lastFrame = System.nanoTime();
-        double updates = 0;
-        double frames = 0;
+        double timePerFrame = (double) 2000000000 / fps_limit;
+
+        long lastDrawTime = System.nanoTime();
+
         while (runState) {
             currentTime = System.nanoTime();
-            delta = delta +(currentTime-oldTime)/ timePerUpdate;
+            delta += (currentTime - oldTime) / timePerUpdate;
             oldTime = currentTime;
-            if(delta>=1)
-            {
+
+            while (delta >= 1) {
                 update();
-                updates++;
                 delta--;
             }
-            if(currentTime-lastFrame>=timeFrame){
-                lastFrame=currentTime;
-                frames++;
+
+            if (System.nanoTime() - lastDrawTime >= timePerFrame) {
                 Draw();
+                lastDrawTime = System.nanoTime();
             }
         }
     }
     private void update()
     {
         levelManager.update();
-
-        return;
     }
     private void Draw()
     {
@@ -126,7 +124,6 @@ public  class Game implements Runnable {
         }
         g = bs.getDrawGraphics();
         g.clearRect(0, 0, wnd.GetWndWidth(), wnd.GetWndHeight());
-
         Color mycolor=new Color(0,140,220);
         g.setColor( mycolor);
         g.fillRect(0,0,wnd.GetWndWidth(), wnd.GetWndHeight());

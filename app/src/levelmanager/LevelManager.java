@@ -49,20 +49,22 @@ public class LevelManager {
         int drawStartY = (player.getMapY() - wnd.GetWndHeight() / 2) / Tile.TILE_HEIGHT;
         int drawStopX = (player.getMapX() + wnd.GetWndWidth() / 2) / Tile.TILE_WIDTH;
         int drawStopY =  (player.getMapY()+ wnd.GetWndHeight()/ 2) / Tile.TILE_HEIGHT;
+        int offsetX =0;
         drawStartX = Math.max(0, drawStartX);
         drawStartY = Math.max(0, drawStartY);
         drawStopX  = Math.min(currentMap.getWidth(),  drawStopX);
         drawStopY  = Math.min(currentMap.getHeight(), drawStopY);
-        int width = Tile.TILE_WIDTH * (drawStopX - drawStartX)/(wnd.GetWndWidth() / Tile.TILE_WIDTH);
-        int height =Tile.TILE_HEIGHT * (drawStopY - drawStartY)/(wnd.GetWndHeight() / Tile.TILE_HEIGHT);
+        if(drawStartX == 0)
+            offsetX = wnd.GetWndWidth() - ( drawStopX - drawStartX) * Tile.TILE_WIDTH;
+      //  System.out.println("drawStartX: " + drawStartX + " drawStopX: " + drawStopX);
         for (int i = drawStartY; i < drawStopY; i++) {
             for (int j = drawStartX; j < drawStopX; j++) {
                 int nr = currentMap.getGrid()[i][j];
                 Tile t = new Tile(Assets.get(TileID.fromId(nr))[0], nr);
                 g.drawImage(t.getImage(),
-                        (j - drawStartX) * width,
-                        (i - drawStartY) * height,
-                        width, height, null);
+                        (j - drawStartX) * Tile.TILE_WIDTH + offsetX,
+                        (i - drawStartY) * Tile.TILE_HEIGHT - Tile.TILE_HEIGHT+  player.getHitbox().height,
+                        Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
             }
         }
         for(Entity e: enemies){
@@ -76,4 +78,5 @@ public class LevelManager {
         for(Entity e: enemies){
             e.update();
         }
-    }}
+    }
+}

@@ -10,16 +10,17 @@ public class KeyHandler implements KeyListener {
     private static boolean attack;
     @Override
     public void keyTyped(KeyEvent e) {
-        if(e.getKeyCode() == KeyEvent.VK_SPACE)
-        {
-            attack = true;
-        }
 
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         int keyCode =e.getKeyCode();
+        if(e.getKeyCode() == KeyEvent.VK_SPACE)
+        {
+            attack = true;
+        }
+
         if(keyCode == KeyEvent.VK_A)
         {
             moveLeft = true;
@@ -46,6 +47,10 @@ public class KeyHandler implements KeyListener {
         }else  if(keyCode == KeyEvent.VK_W)
         {
             jump = false;
+        }
+        if(e.getKeyCode() == KeyEvent.VK_SPACE)
+        {
+            attack = false;
         }
     }
 

@@ -14,8 +14,9 @@ public abstract class Entity {
     protected int cameraY;
     protected int speed;
     protected int health;
+    protected int frame;
     protected Rectangle hitbox = new Rectangle();
-    protected EntitySatus satus = EntitySatus.RIGHT;
+    protected EntitySatus status = EntitySatus.RIGHT;
 
     public Entity(int mapx, int mapy,int health) {
         this.mapX = mapx;
@@ -23,8 +24,6 @@ public abstract class Entity {
         this.health = health;
     }
     public abstract void update();
-
-    public abstract void update(Map map);
 
     public abstract void update(map.Map map);
 
@@ -59,6 +58,10 @@ public abstract class Entity {
 
     public void setCameraY(int i) {
         this.cameraY = i;
+    }
+
+    public Rectangle getHitbox() {
+        return hitbox;
     }
 }
 
