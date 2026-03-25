@@ -49,21 +49,26 @@ public class LevelManager {
         int drawStartY = (player.getMapY() - wnd.GetWndHeight() / 2) / Tile.TILE_HEIGHT;
         int drawStopX = (player.getMapX() + wnd.GetWndWidth() / 2) / Tile.TILE_WIDTH;
         int drawStopY =  (player.getMapY()+ wnd.GetWndHeight()/ 2) / Tile.TILE_HEIGHT;
-        int offsetX =0;
         drawStartX = Math.max(0, drawStartX);
         drawStartY = Math.max(0, drawStartY);
-        drawStopX  = Math.min(currentMap.getWidth(),  drawStopX);
+        drawStopX  = Math.min(currentMap.getWidth(),  drawStopX + 1);
         drawStopY  = Math.min(currentMap.getHeight(), drawStopY);
-        if(drawStartX == 0)
-            offsetX = wnd.GetWndWidth() - ( drawStopX - drawStartX) * Tile.TILE_WIDTH;
-      //  System.out.println("drawStartX: " + drawStartX + " drawStopX: " + drawStopX);
+        int camX = player.getMapX() - wnd.GetWndWidth() / 2;
+        int camY = player.getMapY() - wnd.GetWndHeight() / 2;
+        int offsetX = ((camX % Tile.TILE_WIDTH) + Tile.TILE_WIDTH) % Tile.TILE_WIDTH;
+        int offsetY = ((camY % Tile.TILE_HEIGHT) + Tile.TILE_HEIGHT) % Tile.TILE_HEIGHT;
+
+        if(drawStartX == 0){
+            drawStopX=21;
+        }
+        System.out.println("drawStartX: " + drawStartX + " drawStopX: " + drawStopX);
         for (int i = drawStartY; i < drawStopY; i++) {
             for (int j = drawStartX; j < drawStopX; j++) {
                 int nr = currentMap.getGrid()[i][j];
                 Tile t = new Tile(Assets.get(TileID.fromId(nr))[0], nr);
                 g.drawImage(t.getImage(),
-                        (j - drawStartX) * Tile.TILE_WIDTH + offsetX,
-                        (i - drawStartY) * Tile.TILE_HEIGHT - Tile.TILE_HEIGHT+  player.getHitbox().height,
+                        (j - drawStartX) * Tile.TILE_WIDTH - offsetX,
+                        (i - drawStartY +1) * Tile.TILE_HEIGHT - offsetY,
                         Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
             }
         }

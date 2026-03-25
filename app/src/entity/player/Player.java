@@ -17,12 +17,15 @@ public class Player extends Entity {
     private static Player instance = null;
     private Boolean inAir = false;
     private Boolean attackStarted = false;
-    private Map<String, BufferedImage[]> animations =  new HashMap<String, BufferedImage[]>();
+    private final Map<String, BufferedImage[]> animations =  new HashMap<String, BufferedImage[]>();
     private float airSpeed=0f;
+    private int hitboxOffSet = 40;
+    private int playerOffsetX = hitbox.width;
+    private int playerOffsetY = 15;
     private Player( int mapX, int mapY, int health) {
         super(mapX, mapY, health);
-        this.speed=30;
-        hitbox.setSize(40,50);
+        this.speed=5;
+        hitbox.setSize(20,50);
         animations.put("playerRunLeft", Assets.get("playerRunLeft"));
         animations.put("playerRunRight",Assets.get("playerRunRight"));
         animations.put("playerAttackRight",Assets.get("playerAttackRight"));
@@ -47,19 +50,23 @@ public class Player extends Entity {
         float fallSpeed=0.05f*Tile.TILE_HEIGHT;
         int speedOnX=0;
 
-        float jumpSpeed=-19;
+        float jumpSpeed=-20;
         if (KeyHandler.isMoveLeft())
         {
             status = EntitySatus.LEFT;
-            if(MoveInfo.moveValid(mapX- Tile.TILE_WIDTH -speed,mapY,map))
-                if(MoveInfo.moveValid(mapX- Tile.TILE_WIDTH -speed, mapY - hitbox.height,map))
-                    speedOnX= - speed;
+            if(MoveInfo.moveValid(mapX - speed,mapY,map))
+                if(MoveInfo.moveValid(mapX - speed, mapY - hitbox.height,map))
+                    speedOnX= -speed;
+            hitboxOffSet = 0;
+            playerOffsetX = -20;
         }
         if(KeyHandler.isMoveRight())
         {
+            hitboxOffSet = 40;
+            playerOffsetX = hitbox.width;
             status=EntitySatus.RIGHT;
-            if(MoveInfo.moveValid(mapX+hitbox.width+speed,mapY,map))
-                if(MoveInfo.moveValid(mapX+hitbox.width+speed, mapY - hitbox.height,map ))
+            if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet + speed,mapY,map))
+                if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet  + speed, mapY - hitbox.height,map ))
                     speedOnX=speed;
         }
         if(KeyHandler.isJump() && !inAir)
@@ -75,14 +82,17 @@ public class Player extends Entity {
             }
         }
         mapX=mapX+speedOnX;
-        if(MoveInfo.onTheFloor(mapX, mapY, hitbox, map) && inAir && airSpeed > 0)
+        if(MoveInfo.onTheFloor(mapX + hitboxOffSet , mapY, hitbox, map) && inAir && airSpeed > 0)
         {
             inAir = false;
             airSpeed = 0f;
         }
+        else {
+            inAir = true;
+        }
         if (inAir) {
-            if (MoveInfo.moveValid(mapX, (int)(mapY + airSpeed), map)
-                    && MoveInfo.moveValid(mapX + hitbox.width, (int)(mapY + airSpeed), map)) {
+            if (MoveInfo.moveValid(mapX + hitboxOffSet, (int)(mapY + airSpeed), map)
+                    && MoveInfo.moveValid(mapX + hitboxOffSet + hitbox.width, (int)(mapY + airSpeed), map)) {
                 mapY += (int) airSpeed;
                 airSpeed += gravity;
             } else {
@@ -92,9 +102,18 @@ public class Player extends Entity {
         }
         else{
             if (status == EntitySatus.JUMP_LEFT)
+            {
                 status = EntitySatus.IDLE_LEFT;
+                hitboxOffSet = 0;
+                playerOffsetX = - 20;
+
+            }
             if (status == EntitySatus.JUMP_RIGHT)
+            {
                 status = EntitySatus.IDLE_RIGHT;
+                hitboxOffSet = 40;
+                playerOffsetX = hitbox.width;
+            }
         }
 
         if(KeyHandler.isAttack() && !inAir && !attackStarted)
@@ -174,12 +193,12 @@ public class Player extends Entity {
         drawHitbox(g);
         if(frame >= image.length)
             frame=0;
-        g.drawImage(image[frame],cameraX, cameraY , Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);
+        g.drawImage(image[frame],cameraX + playerOffsetX, cameraY + playerOffsetY , Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);
     }
 
     private void drawHitbox(Graphics g) {
         g.setColor(Color.white);
-        g.drawRect(cameraX, cameraY,hitbox.width,hitbox.height);
+        g.drawRect(cameraX + hitboxOffSet, cameraY + playerOffsetY,hitbox.width,hitbox.height);
     }
 
     @Override

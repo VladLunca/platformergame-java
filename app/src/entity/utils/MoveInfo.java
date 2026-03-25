@@ -9,7 +9,7 @@ import java.awt.*;
 public abstract class MoveInfo {
     public static boolean moveValid(int x,int y,Map map){
         int px,py;
-        px=x/Tile.TILE_WIDTH;
+        px= x/Tile.TILE_WIDTH;
         py= y/Tile.TILE_HEIGHT;
         if(px<0 || py<0) {
             return false;
