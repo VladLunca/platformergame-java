@@ -2,13 +2,13 @@ import gamewindow.GameWindow;
 import graphics.assets.Assets;
 import levelmanager.LevelManager;
 import map.MapManager;
-import utils.LevelMaps;
+
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Objects;
+import static gamewindow.GameWindow.createGameWindow;
 
 public  class Game implements Runnable {
     private  GameWindow       wnd ;
@@ -16,11 +16,11 @@ public  class Game implements Runnable {
     private Thread          gameThread;
     private BufferStrategy bs;
     private Graphics g;
-    private static  Game instance;
+    private static volatile Game instance;
     private static MapManager mapManager;
     private static LevelManager levelManager;
     private  Game(String title, int width, int height) throws IOException {
-        wnd = new GameWindow(title, width, height);
+        wnd = createGameWindow(title, width, height);
         runState = false;
         mapManager= MapManager.createMapManager("/textures/maps/maps.json");
         levelManager = LevelManager.createLevelManager(mapManager);
@@ -29,10 +29,15 @@ public  class Game implements Runnable {
     {
         return Objects.requireNonNullElseGet(instance, () -> {
             try {
-                return new Game(title, width, height);
+                synchronized (Game.class) {
+                    if (instance == null) {            // Second check (with locking)
+                        instance = new Game(title, width, height);
+                    }
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            return instance;
         });
     }
     private void InitGame()

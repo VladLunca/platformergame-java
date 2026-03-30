@@ -26,9 +26,9 @@
 
     ],
     "enemies": [
-      { "type": "SNAKE", "x": 5, "y": 17, "lives": 2},
-      { "type": "SNAKE", "x": 12, "y": 17, "lives": 2},
-      { "type": "DRAGON", "x": 20, "y": 17, "lives": 5}
+      { "type": "SNAKE", "x": 16, "y": 16, "lives": 2},
+      { "type": "SNAKE", "x": 22, "y": 15, "lives": 2},
+      { "type": "DRAGON", "x": 20, "y": 15, "lives": 5}
     ]
   },
   "redMap": {

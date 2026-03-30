@@ -2,6 +2,7 @@ package entity.enamy;
 
 import entity.Entity;
 import entity.player.Player;
+import entity.utils.DragonTypes;
 import gamewindow.GameWindow;
 
 import java.awt.*;
@@ -10,8 +11,10 @@ import java.util.Map;
 
 public class Dragon extends Entity {
     private Map<String, BufferedImage[]> animations;
+    DragonTypes dragonType = DragonTypes.GREEN;
 
-    public Dragon(int mapx, int mapy, int health) {
+    public Dragon(int mapx, int mapy, int health)
+    {
         super(mapx, mapy, health);
     }
 
@@ -40,7 +43,7 @@ public class Dragon extends Entity {
     }
 
     @Override
-    public void drawHitbox(Graphics g, GameWindow wnd) {
+    public void drawHitbox(Graphics g) {
 
     }
 

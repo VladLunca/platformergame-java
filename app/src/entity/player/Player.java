@@ -1,7 +1,7 @@
 package entity.player;
 
 import entity.Entity;
-import entity.utils.EntitySatus;
+import entity.utils.PlayerStatus;
 import entity.utils.MoveInfo;
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Player extends Entity {
-    private static Player instance = null;
+    private PlayerStatus status = PlayerStatus.RIGHT;
+    private static volatile Player instance = null;
     private Boolean inAir = false;
     private Boolean attackStarted = false;
     private final Map<String, BufferedImage[]> animations =  new HashMap<String, BufferedImage[]>();
@@ -53,7 +54,7 @@ public class Player extends Entity {
         float jumpSpeed=-20;
         if (KeyHandler.isMoveLeft())
         {
-            status = EntitySatus.LEFT;
+            status = PlayerStatus.LEFT;
             if(MoveInfo.moveValid(mapX - speed,mapY,map))
                 if(MoveInfo.moveValid(mapX - speed, mapY - hitbox.height,map))
                     speedOnX= -speed;
@@ -64,7 +65,7 @@ public class Player extends Entity {
         {
             hitboxOffSet = 40;
             playerOffsetX = hitbox.width;
-            status=EntitySatus.RIGHT;
+            status= PlayerStatus.RIGHT;
             if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet + speed,mapY,map))
                 if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet  + speed, mapY - hitbox.height,map ))
                     speedOnX=speed;
@@ -73,12 +74,12 @@ public class Player extends Entity {
         {
             inAir=true;
             airSpeed=jumpSpeed;
-            if(status.compareTo(EntitySatus.LEFT) == 0 || status.compareTo(EntitySatus.IDLE_LEFT) == 0 ) {
-                status = EntitySatus.JUMP_LEFT;
+            if(status.compareTo(PlayerStatus.LEFT) == 0 || status.compareTo(PlayerStatus.IDLE_LEFT) == 0 ) {
+                status = PlayerStatus.JUMP_LEFT;
             }
             else
             {
-                status=EntitySatus.JUMP_RIGHT;
+                status= PlayerStatus.JUMP_RIGHT;
             }
         }
         mapX=mapX+speedOnX;
@@ -101,16 +102,16 @@ public class Player extends Entity {
             }
         }
         else{
-            if (status == EntitySatus.JUMP_LEFT)
+            if (status == PlayerStatus.JUMP_LEFT)
             {
-                status = EntitySatus.IDLE_LEFT;
+                status = PlayerStatus.IDLE_LEFT;
                 hitboxOffSet = 0;
                 playerOffsetX = - 20;
 
             }
-            if (status == EntitySatus.JUMP_RIGHT)
+            if (status == PlayerStatus.JUMP_RIGHT)
             {
-                status = EntitySatus.IDLE_RIGHT;
+                status = PlayerStatus.IDLE_RIGHT;
                 hitboxOffSet = 40;
                 playerOffsetX = hitbox.width;
             }
@@ -118,13 +119,13 @@ public class Player extends Entity {
 
         if(KeyHandler.isAttack() && !inAir && !attackStarted)
         {
-            if(status == EntitySatus.LEFT)
+            if(status == PlayerStatus.LEFT)
             {
-                status=EntitySatus.ATTACK_LEFT;
+                status= PlayerStatus.ATTACK_LEFT;
             }
             else
             {
-                status=EntitySatus.ATTACK_RIGHT;
+                status= PlayerStatus.ATTACK_RIGHT;
             }
             attackStarted = true;
             frame=-1;
@@ -139,7 +140,11 @@ public class Player extends Entity {
 
     public static Player createPlayer(int mapX, int mapY, int health) {
         if(instance == null) {
-            return new Player(mapX, mapY, health);
+            synchronized (Player.class) {
+                if (instance == null) {
+                    instance = new Player(mapX, mapY, health);
+                }
+            }
         }
         System.out.println("You can't create 2 players.");
         return instance;
@@ -152,39 +157,38 @@ public class Player extends Entity {
 
     @Override
     public void draw(Graphics g, GameWindow wnd, map.Map map) {
-        cameraX= wnd.GetWndWidth()/2;
-        cameraY= wnd.GetWndHeight()/2;
+
         BufferedImage[] image ;
         switch (status) {
-            case EntitySatus.LEFT:
+            case PlayerStatus.LEFT:
                 image=animations.get("playerRunLeft");
-                status = EntitySatus.IDLE_LEFT;
+                status = PlayerStatus.IDLE_LEFT;
                 break;
-            case EntitySatus.RIGHT:
+            case PlayerStatus.RIGHT:
                 image=animations.get("playerRunRight");
-                status = EntitySatus.IDLE_RIGHT;
+                status = PlayerStatus.IDLE_RIGHT;
                 break;
-            case EntitySatus.IDLE_LEFT:
+            case PlayerStatus.IDLE_LEFT:
                 image=animations.get("playerIdleLeft");
-                status = EntitySatus.IDLE_LEFT;
+                status = PlayerStatus.IDLE_LEFT;
                 break;
-            case EntitySatus.IDLE_RIGHT:
+            case PlayerStatus.IDLE_RIGHT:
                 image = animations.get("playerIdleRight");
-                status = EntitySatus.IDLE_RIGHT;
+                status = PlayerStatus.IDLE_RIGHT;
                 break;
-            case EntitySatus.JUMP_LEFT:
+            case PlayerStatus.JUMP_LEFT:
                 image = animations.get("playerJumpLeft");
                 break;
-            case EntitySatus.JUMP_RIGHT:
+            case PlayerStatus.JUMP_RIGHT:
                 image = animations.get("playerJumpRight");
                 break;
-            case EntitySatus.ATTACK_RIGHT:
+            case PlayerStatus.ATTACK_RIGHT:
                 image=animations.get("playerAttackRight");
-                status = EntitySatus.IDLE_RIGHT;
+                status = PlayerStatus.IDLE_RIGHT;
                 break;
-            case EntitySatus.ATTACK_LEFT:
+            case PlayerStatus.ATTACK_LEFT:
                 image=animations.get("playerAttackLeft");
-                status = EntitySatus.IDLE_LEFT;
+                status = PlayerStatus.IDLE_LEFT;
                 break;
             default:
                 image=animations.get("playerIdleLeft");
@@ -195,12 +199,9 @@ public class Player extends Entity {
             frame=0;
         g.drawImage(image[frame],cameraX + playerOffsetX, cameraY + playerOffsetY , Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);
     }
-
-    private void drawHitbox(Graphics g) {
+    @Override
+    public void drawHitbox(Graphics g) {
         g.setColor(Color.white);
         g.drawRect(cameraX + hitboxOffSet, cameraY + playerOffsetY,hitbox.width,hitbox.height);
     }
-
-    @Override
-    public void drawHitbox(Graphics g, GameWindow wnd){}
 }

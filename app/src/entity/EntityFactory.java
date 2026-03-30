@@ -13,7 +13,7 @@ public class EntityFactory {
         return switch (type) {
             case EntityTypes.SNAKE  -> new Snake(x, y, health);
             case EntityTypes.DRAGON  -> new Dragon(x, y, health);
-            case EntityTypes.PLAYER-> Player.createPlayer(x, y, health);
+            //case EntityTypes.PLAYER-> Player.createPlayer(x, y, health);
             default -> throw new IllegalArgumentException("Unknown entity: " + type);
         };
     }

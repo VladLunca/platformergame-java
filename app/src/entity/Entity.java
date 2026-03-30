@@ -1,11 +1,10 @@
 package entity;
 
 import entity.player.Player;
-import entity.utils.EntitySatus;
+import entity.utils.PlayerStatus;
 import gamewindow.GameWindow;
 
 import java.awt.*;
-import java.util.Map;
 
 public abstract class Entity {
     protected int mapX;
@@ -16,7 +15,6 @@ public abstract class Entity {
     protected int health;
     protected int frame;
     protected Rectangle hitbox = new Rectangle();
-    protected EntitySatus status = EntitySatus.RIGHT;
 
     public Entity(int mapx, int mapy,int health) {
         this.mapX = mapx;
@@ -31,7 +29,6 @@ public abstract class Entity {
 
     public abstract void draw(Graphics g, GameWindow wnd, map.Map map);
 
-    public abstract void drawHitbox(Graphics g, GameWindow wnd);
 
     public int  getMapX() {
         return mapX;
@@ -63,5 +60,7 @@ public abstract class Entity {
     public Rectangle getHitbox() {
         return hitbox;
     }
+
+    public abstract void drawHitbox(Graphics g);
 }
 

@@ -42,6 +42,7 @@ public class LevelManager {
                 case 3 ->  mapManager.getMap(LevelMaps.purpleMap.name());
                 default -> throw new IllegalStateException("Unexpected value: " + level);
             };
+            enemies = currentMap.getEnemies();
             player= Player.createPlayer(10 * Tile.TILE_WIDTH,15 * Tile.TILE_HEIGHT, 3);
     }
     public void draw(Graphics g, GameWindow wnd) {
@@ -53,20 +54,17 @@ public class LevelManager {
         drawStartY = Math.max(0, drawStartY);
         drawStopX  = Math.min(currentMap.getWidth(),  drawStopX + 1);
         drawStopY  = Math.min(currentMap.getHeight(), drawStopY);
+        player.setCameraX(wnd.GetWndWidth()/2) ;
+        player.setCameraY(wnd.GetWndHeight()/2) ;
+
         int camX = player.getMapX() - wnd.GetWndWidth() / 2;
         int camY = player.getMapY() - wnd.GetWndHeight() / 2;
         int offsetX = ((camX % Tile.TILE_WIDTH) + Tile.TILE_WIDTH) % Tile.TILE_WIDTH;
         int offsetY = ((camY % Tile.TILE_HEIGHT) + Tile.TILE_HEIGHT) % Tile.TILE_HEIGHT;
-
-        if(drawStartX == 0){
-            drawStopX=21;
-        }
-        System.out.println("drawStartX: " + drawStartX + " drawStopX: " + drawStopX);
         for (int i = drawStartY; i < drawStopY; i++) {
             for (int j = drawStartX; j < drawStopX; j++) {
                 int nr = currentMap.getGrid()[i][j];
-                Tile t = new Tile(Assets.get(TileID.fromId(nr))[0], nr);
-                g.drawImage(t.getImage(),
+                g.drawImage(Assets.get(TileID.fromId(nr))[0],
                         (j - drawStartX) * Tile.TILE_WIDTH - offsetX,
                         (i - drawStartY +1) * Tile.TILE_HEIGHT - offsetY,
                         Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
@@ -75,6 +73,8 @@ public class LevelManager {
         for(Entity e: enemies){
             e.draw(g,wnd,player);
         }
+
+
         player.draw(g,wnd,currentMap);
     }
 

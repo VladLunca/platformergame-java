@@ -4,20 +4,34 @@ import handle.KeyHandler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.util.Objects;
+
 public class GameWindow
 {
+    private static volatile GameWindow instance;
     private JFrame  wndFrame;
     private final String  wndTitle;
     private final int     wndWidth;
     private final int     wndHeight;
     private  Canvas  canvas;
 
-    public GameWindow(String title, int width, int height){
+    private GameWindow(String title, int width, int height){
         wndTitle    = title;
         wndWidth    = width;
         wndHeight   = height;
         wndFrame    = null;
         
+    }
+    public static GameWindow createGameWindow(String title, int width, int height){
+        return Objects.requireNonNullElseGet(instance, () -> {
+            synchronized (GameWindow.class) {
+                if (instance == null) {
+                    instance = new GameWindow(title, width, height);
+                }
+            }
+            return instance;
+        });
     }
     public void BuildGameWindow()
     {

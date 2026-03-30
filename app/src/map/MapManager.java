@@ -88,7 +88,7 @@ public class MapManager {
                     int y = enemyObj.get("y").getAsInt();
                     int lives = enemyObj.get("lives").getAsInt();
                     EntityTypes entityType = EntityTypes.valueOf(type.toUpperCase().trim());
-                    enemies.add(EntityFactory.create(entityType,x,y,lives));
+                    enemies.add(EntityFactory.create(entityType,x * Tile.TILE_WIDTH,y * Tile.TILE_HEIGHT,lives));
                 }
             }
             Map m = new Map(mapName, rows, cols, enemies);
