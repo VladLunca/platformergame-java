@@ -25,7 +25,7 @@ public class Dragon extends Entity {
 
     public Dragon(int mapx, int mapy, int health) {
         super(mapx, mapy, health);
-        this.hitbox.setSize(64, 64);
+        this.hitbox.setSize(80, 80);
         this.damage = 2;
         this.speed  = CHASE_SPEED;
     }
@@ -101,8 +101,8 @@ public class Dragon extends Entity {
 
         String prefix = switch (dragonType) {
             case PURPLE -> "dragonPurple";
-            case RED    -> "dragonBone";
-            default     -> "dragonGreen";
+            case RED -> "dragonBone";
+            default -> "dragonGreen";
         };
         String animKey = facingLeft ? prefix + "WalkLeft" : prefix + "WalkRight";
         BufferedImage img = Assets.get(animKey)[animFrame];
@@ -136,8 +136,8 @@ public class Dragon extends Entity {
     public void reset(int startX, int startY, int startHealth) {
         super.reset(startX, startY, startHealth);
         animationTimer = 0;
-        animFrame      = 0;
-        facingLeft     = false;
+        animFrame = 0;
+        facingLeft = false;
     }
 
     public void setDragonType(DragonTypes type) {
