@@ -1,6 +1,7 @@
 package gamewindow;
 
 import handle.KeyHandler;
+import handle.MouseHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,12 +51,16 @@ public class GameWindow
         canvas.setPreferredSize(new Dimension(wndWidth, wndHeight));
         canvas.setMaximumSize(new Dimension(wndWidth, wndHeight));
         canvas.setMinimumSize(new Dimension(wndWidth, wndHeight));
+        canvas.setFocusable(false);
         wndFrame.add(canvas);
         wndFrame.setFocusable(true);
         wndFrame.pack();
 
         KeyHandler keyHandler = new KeyHandler();
         wndFrame.addKeyListener(keyHandler);
+
+        MouseHandler mouseHandler = new MouseHandler();
+        canvas.addMouseListener(mouseHandler);
         wndFrame.setFocusable(true);
         wndFrame.requestFocus();         // ← frame-ul primește focus automat
 

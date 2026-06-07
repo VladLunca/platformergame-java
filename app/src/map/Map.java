@@ -10,43 +10,26 @@ public class Map {
     private int height;
     private int width;
     private int [][] grid;
-    private  List<Entity> enemies =  new ArrayList<Entity>();
-    public Map(String name, int height, int width, List<Entity> enemies) {
+    private List<Entity> enemies = new ArrayList<Entity>();
+    private int gateX;
+    private int gateY;
+
+    public Map(String name, int height, int width, List<Entity> enemies, int gateX, int gateY) {
         this.name = name;
         this.height = height;
         this.width = width;
-        this.grid = new int [height][width];
+        this.grid = new int[height][width];
         this.enemies = enemies;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public void setHeight(int height) {
-        this.height = height;
-    }
-    public void setWidth(int width) {
-        this.width = width;
-    }
-    public void setGrid(int [][] grid) {
-        this.grid = grid;
-    }
-    public int[][] getGrid() {
-        return grid;
-    }
-    public String getName() {
-        return name;
-    }
-    public int getHeight() {
-        return height;
-    }
-    public int getWidth() {
-        return width;
+        this.gateX = gateX;
+        this.gateY = gateY;
     }
 
-    public  List<Entity> getEnemies() {
-        return enemies;
-    }
-
-  // public void addEnamy(){}
+    public void setGrid(int[][] grid) { this.grid = grid; }
+    public int[][] getGrid()          { return grid; }
+    public String getName()           { return name; }
+    public int getHeight()            { return height; }
+    public int getWidth()             { return width; }
+    public List<Entity> getEnemies()  { return enemies; }
+    public int getGateX()             { return gateX; }
+    public int getGateY()             { return gateY; }
 }
-

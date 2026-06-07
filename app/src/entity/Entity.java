@@ -13,6 +13,8 @@ public abstract class Entity {
     protected int cameraY;
     protected int speed;
     protected int health;
+    protected int damage;
+    protected float knockbackVX;
     protected int frame;
     protected Rectangle hitbox = new Rectangle();
 
@@ -62,5 +64,34 @@ public abstract class Entity {
     }
 
     public abstract void drawHitbox(Graphics g);
+
+    public boolean isDead() {
+        return health <= 0;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public void takeDamage(int amount) {
+        health -= amount;
+    }
+
+    public void applyKnockback(int dirX) {
+        knockbackVX = dirX * 8f;
+    }
+
+    public Rectangle getScreenHitbox() {
+        return new Rectangle(cameraX, cameraY, hitbox.width, hitbox.height);
+    }
+
+    public void reset(int startX, int startY, int startHealth) {
+        mapX     = startX;
+        mapY     = startY;
+        health   = startHealth;
+        frame    = 0;
+        cameraX  = 0;
+        cameraY  = 0;
+    }
 }
 

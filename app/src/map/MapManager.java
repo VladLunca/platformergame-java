@@ -91,7 +91,13 @@ public class MapManager {
                     enemies.add(EntityFactory.create(entityType,x * Tile.TILE_WIDTH,y * Tile.TILE_HEIGHT,lives));
                 }
             }
-            Map m = new Map(mapName, rows, cols, enemies);
+            int gateX = 0, gateY = 0;
+            if (mapObj.has("gate")) {
+                JsonObject gateObj = mapObj.get("gate").getAsJsonObject();
+                gateX = gateObj.get("x").getAsInt() * Tile.TILE_WIDTH;
+                gateY = gateObj.get("y").getAsInt() * Tile.TILE_HEIGHT;
+            }
+            Map m = new Map(mapName, rows, cols, enemies, gateX, gateY);
             m.setGrid(grid);
             MAPS.put(mapName, m);
         }

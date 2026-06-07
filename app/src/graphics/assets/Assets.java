@@ -17,6 +17,7 @@ public class Assets {
             List<AssetsFactory> factories = List.of(
                     new TileAssetsFactory(),
                     new PropFactory(),
+                    new UiFactory(),
                     new PlayerFactory(),
                     new DragonFactory(),
                     new SnakeFactory()

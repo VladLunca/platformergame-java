@@ -8,6 +8,7 @@ public class KeyHandler implements KeyListener {
     private static boolean moveLeft;
     private static boolean moveRight;
     private static boolean attack;
+    private static boolean escape;
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -19,6 +20,10 @@ public class KeyHandler implements KeyListener {
         if(e.getKeyCode() == KeyEvent.VK_SPACE)
         {
             attack = true;
+        }
+        if(keyCode == KeyEvent.VK_ESCAPE)
+        {
+            escape = true;
         }
 
         if(keyCode == KeyEvent.VK_A)
@@ -52,6 +57,10 @@ public class KeyHandler implements KeyListener {
         {
             attack = false;
         }
+        if(keyCode == KeyEvent.VK_ESCAPE)
+        {
+            escape = false;
+        }
     }
 
     public static boolean isJump() {
@@ -68,5 +77,13 @@ public class KeyHandler implements KeyListener {
 
     public static boolean isMoveRight() {
         return moveRight;
+    }
+
+    public static boolean isEscape() {
+        return escape;
+    }
+
+    public static void resetEscape() {
+        escape = false;
     }
 }

@@ -18,6 +18,10 @@ public class Player extends Entity {
     private static volatile Player instance = null;
     private Boolean inAir = false;
     private Boolean attackStarted = false;
+    private boolean attackHasHit = false;
+    private int invincibilityTimer = 0;
+    private static final int INVINCIBILITY_FRAMES = 60;
+    private static final int ATTACK_REACH = 55;
     private final Map<String, BufferedImage[]> animations =  new HashMap<String, BufferedImage[]>();
     private float airSpeed=0f;
     private int hitboxOffSet = 40;
@@ -47,11 +51,24 @@ public class Player extends Entity {
 
     @Override
     public void update(map.Map map) {
+        if (invincibilityTimer > 0) invincibilityTimer--;
+        if (knockbackVX != 0) {
+            int newX = mapX + (int) knockbackVX;
+            boolean xClear = MoveInfo.moveValid(newX + hitboxOffSet, mapY, map)
+                          && MoveInfo.moveValid(newX + hitboxOffSet + hitbox.width, mapY, map)
+                          && MoveInfo.moveValid(newX + hitboxOffSet, mapY - hitbox.height, map)
+                          && MoveInfo.moveValid(newX + hitboxOffSet + hitbox.width, mapY - hitbox.height, map);
+            if (xClear) mapX = newX;
+            else knockbackVX = 0;
+            knockbackVX *= 0.88f;
+            if (Math.abs(knockbackVX) < 0.1f) knockbackVX = 0;
+        }
         float gravity=0.02f*Tile.TILE_HEIGHT;
         float fallSpeed=0.05f*Tile.TILE_HEIGHT;
         int speedOnX=0;
 
         float jumpSpeed=-20;
+        if (!attackStarted) {
         if (KeyHandler.isMoveLeft())
         {
             status = PlayerStatus.LEFT;
@@ -82,6 +99,7 @@ public class Player extends Entity {
                 status= PlayerStatus.JUMP_RIGHT;
             }
         }
+        }
         mapX=mapX+speedOnX;
         if(MoveInfo.onTheFloor(mapX + hitboxOffSet , mapY, hitbox, map) && inAir && airSpeed > 0)
         {
@@ -92,13 +110,22 @@ public class Player extends Entity {
             inAir = true;
         }
         if (inAir) {
-            if (MoveInfo.moveValid(mapX + hitboxOffSet, (int)(mapY + airSpeed), map)
-                    && MoveInfo.moveValid(mapX + hitboxOffSet + hitbox.width, (int)(mapY + airSpeed), map)) {
+            int checkY = airSpeed < 0
+                ? (int)(mapY + playerOffsetY + airSpeed)
+                : (int)(mapY + airSpeed);
+            if (MoveInfo.moveValid(mapX + hitboxOffSet, checkY, map)
+                    && MoveInfo.moveValid(mapX + hitboxOffSet + hitbox.width, checkY, map)) {
                 mapY += (int) airSpeed;
                 airSpeed += gravity;
             } else {
-                inAir    = false;
-                airSpeed = 0f;
+                if (airSpeed < 0) {
+                    int ceilRow = checkY / Tile.TILE_HEIGHT;
+                    mapY = (ceilRow + 1) * Tile.TILE_HEIGHT + hitbox.height;
+                    airSpeed = 0f;
+                } else {
+                    inAir    = false;
+                    airSpeed = 0f;
+                }
             }
         }
         else{
@@ -119,7 +146,7 @@ public class Player extends Entity {
 
         if(KeyHandler.isAttack() && !inAir && !attackStarted)
         {
-            if(status == PlayerStatus.LEFT)
+            if(status == PlayerStatus.LEFT || status == PlayerStatus.IDLE_LEFT || status == PlayerStatus.JUMP_LEFT)
             {
                 status= PlayerStatus.ATTACK_LEFT;
             }
@@ -128,9 +155,20 @@ public class Player extends Entity {
                 status= PlayerStatus.ATTACK_RIGHT;
             }
             attackStarted = true;
-            frame=-1;
+            attackHasHit  = false;
+            frame = 0;
         }
         frame++;
+        if (status == PlayerStatus.ATTACK_RIGHT || status == PlayerStatus.ATTACK_LEFT) {
+            BufferedImage[] attackAnim = animations.get(
+                status == PlayerStatus.ATTACK_RIGHT ? "playerAttackRight" : "playerAttackLeft"
+            );
+            if (frame >= attackAnim.length) {
+                frame = 0;
+                attackStarted = false;
+                status = (status == PlayerStatus.ATTACK_RIGHT) ? PlayerStatus.IDLE_RIGHT : PlayerStatus.IDLE_LEFT;
+            }
+        }
     }
 
     @Override
@@ -138,18 +176,66 @@ public class Player extends Entity {
 
     }
 
+    public static Player getInstance() { return instance; }
+
     public static Player createPlayer(int mapX, int mapY, int health) {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (Player.class) {
                 if (instance == null) {
                     instance = new Player(mapX, mapY, health);
                 }
             }
         }
-        System.out.println("You can't create 2 players.");
         return instance;
     }
 
+    public void reset(int startX, int startY, int startHealth) {
+        mapX                = startX;
+        mapY                = startY;
+        health              = startHealth;
+        status              = PlayerStatus.IDLE_RIGHT;
+        inAir               = false;
+        attackStarted       = false;
+        attackHasHit        = false;
+        airSpeed            = 0f;
+        knockbackVX         = 0f;
+        invincibilityTimer  = 0;
+        frame               = 0;
+        hitboxOffSet        = 40;
+        playerOffsetX       = hitbox.width;
+    }
+
+
+    @Override
+    public void takeDamage(int amount) {
+        if (invincibilityTimer <= 0) {
+            health -= amount;
+            invincibilityTimer = INVINCIBILITY_FRAMES;
+        }
+    }
+
+    @Override
+    public void applyKnockback(int dirX) {
+        knockbackVX = dirX * 10f;
+        airSpeed    = -12f;
+        inAir       = true;
+    }
+
+    @Override
+    public Rectangle getScreenHitbox() {
+        return new Rectangle(cameraX + hitboxOffSet, cameraY + playerOffsetY, hitbox.width, hitbox.height);
+    }
+
+    public Rectangle getAttackHitbox() {
+        if (!attackStarted) return null;
+        if (status == PlayerStatus.ATTACK_RIGHT)
+            return new Rectangle(cameraX + 52, cameraY + 51, 28, 10);
+        else
+            return new Rectangle(cameraX - 13, cameraY + 51, 28, 10);
+    }
+
+    public boolean isAttackHit()           { return attackHasHit; }
+    public void    setAttackHit(boolean v) { attackHasHit = v; }
 
     public void onCollision(Entity other) {
        // health = health - other.damage;
@@ -184,11 +270,9 @@ public class Player extends Entity {
                 break;
             case PlayerStatus.ATTACK_RIGHT:
                 image=animations.get("playerAttackRight");
-                status = PlayerStatus.IDLE_RIGHT;
                 break;
             case PlayerStatus.ATTACK_LEFT:
                 image=animations.get("playerAttackLeft");
-                status = PlayerStatus.IDLE_LEFT;
                 break;
             default:
                 image=animations.get("playerIdleLeft");
@@ -202,6 +286,12 @@ public class Player extends Entity {
     @Override
     public void drawHitbox(Graphics g) {
         g.setColor(Color.white);
-        g.drawRect(cameraX + hitboxOffSet, cameraY + playerOffsetY,hitbox.width,hitbox.height);
+        g.drawRect(cameraX + hitboxOffSet, cameraY + playerOffsetY, hitbox.width, hitbox.height);
+
+        Rectangle attackBox = getAttackHitbox();
+        if (attackBox != null) {
+            g.setColor(Color.RED);
+            g.drawRect(attackBox.x, attackBox.y, attackBox.width, attackBox.height);
+        }
     }
 }

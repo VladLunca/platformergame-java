@@ -16,6 +16,6 @@ public class PropFactory implements AssetsFactory{
         images.put("treasure", new BufferedImage[] {ImageLoader.LoadImage("/textures/utils/treasures.png")});
         images.put("treasureVase", new BufferedImage[] {ImageLoader.LoadImage("/textures/utils/treasures_vase.png")});
         SpriteSheet lives = new SpriteSheet(ImageLoader.LoadImage("/textures/utils/lives.png"));
-        images.put("lives", new BufferedImage[] { lives.crop(0, 0),lives.crop(1, 0),lives.crop(2, 0)});
+        images.put("lives", new BufferedImage[] { lives.crop(0, 0,74,64),lives.crop(1, 0,74,64),lives.crop(2, 0,74,64)});
     }
 }
