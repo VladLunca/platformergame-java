@@ -150,3 +150,5 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 
 - [OpenGameArt.org](https://opengameart.org) — Free game assets for everyone
 - [PlatForge Collection on OGA](https://opengameart.org/content/art-from-platforge) — All PlatForge art assets
+  ##To DO : fix the bug with the knockback, make the dragon attack too, fix level 2 and 3 maps, add interactions with flowers and torch tiles
+  
