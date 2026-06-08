@@ -6,11 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import entity.Entity;
 import entity.EntityFactory;
-import entity.enamy.Dragon;
-import entity.enamy.Snake;
-import graphics.assets.Assets;
 import graphics.tiles.Tile;
-import utils.EntityTypes;
 import utils.TileID;
 
 
@@ -31,7 +27,8 @@ public class MapManager {
 
     public static MapManager createMapManager(String filePath) throws IOException {
         if (instance == null) {
-            instance = new MapManager(filePath);
+            instance = new
+                    MapManager(filePath);
         }
         return instance;
     }
@@ -88,8 +85,7 @@ public class MapManager {
                     int y = enemyObj.get("y").getAsInt();
                     int lives = enemyObj.get("lives").getAsInt();
                     int patrol = enemyObj.has("patrol") ? enemyObj.get("patrol").getAsInt() : 2;
-                    EntityTypes entityType = EntityTypes.valueOf(type.toUpperCase().trim());
-                    enemies.add(EntityFactory.create(entityType, x * Tile.TILE_WIDTH, y * Tile.TILE_HEIGHT, lives, patrol));
+                    enemies.add(EntityFactory.create(type, x * Tile.TILE_WIDTH, y * Tile.TILE_HEIGHT, lives, patrol));
                 }
             }
             int gateX = 0, gateY = 0;

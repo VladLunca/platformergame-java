@@ -280,17 +280,25 @@ public static Player createPlayer(int mapX, int mapY, int health) {
 
 ---
 
-### Factory Method
+### Extensible Factory (Registry-based Factory)
 **Class:** `EntityFactory`
 
-`EntityFactory.create(EntityTypes, x, y, health, patrolRange)` centralises entity instantiation. `MapManager` calls the factory while parsing the JSON map, without needing to know which concrete subclass is being created. Adding a new enemy type only requires a new branch in the `switch`, with no changes to the map-loading code.
+`EntityFactory` centralises entity instantiation without knowing anything about concrete types. Instead of a `switch`, it holds a `Map<String, Creator>` registry. Each entity type registers its own constructor lambda from `Game.InitGame()` — `EntityFactory` itself never needs to change when a new enemy is added.
+
+`MapManager` reads the entity type directly as a string from JSON and passes it straight to the factory, with no intermediate enum conversion.
 
 `Assets.Init()` follows the same principle: it iterates a list of `AssetsFactory` implementations (`PlayerFactory`, `DragonFactory`, `SnakeFactory`, etc.), each responsible for loading its own set of images into the global registry.
 
 ```mermaid
 classDiagram
     class EntityFactory {
-        +create(EntityTypes, x, y, health, patrolRange) Entity$
+        -Map~String, Creator~ registry$
+        +register(String, Creator)$
+        +create(String, x, y, health, patrolRange) Entity$
+    }
+    class Creator {
+        <<interface>>
+        +create(x, y, health, patrolRange) Entity*
     }
     class Entity {
         <<abstract>>
@@ -309,8 +317,9 @@ classDiagram
     class DragonFactory
     class SnakeFactory
 
-    EntityFactory ..> Snake  : creates
-    EntityFactory ..> Dragon : creates
+    EntityFactory --> Creator : registry
+    Creator ..> Snake  : creates
+    Creator ..> Dragon : creates
     Entity <|-- Snake
     Entity <|-- Dragon
     AssetsFactory <|.. PlayerFactory
@@ -320,13 +329,19 @@ classDiagram
 ```
 
 ```java
-public static Entity create(EntityTypes type, int x, int y, int health, int patrolRange) {
-    return switch (type) {
-        case SNAKE  -> new Snake(x, y, health, patrolRange);
-        case DRAGON -> new Dragon(x, y, health);
-        default -> throw new IllegalArgumentException("Unknown entity: " + type);
-    };
+// EntityFactory.java — never modified when adding new enemies
+public static void register(String type, Creator creator) {
+    registry.put(type.toLowerCase(), creator);
 }
+public static Entity create(String type, int x, int y, int health, int patrolRange) {
+    Creator creator = registry.get(type.toLowerCase());
+    if (creator == null) throw new IllegalArgumentException("Unknown entity: " + type);
+    return creator.create(x, y, health, patrolRange);
+}
+
+// Game.java — only place that changes when adding a new enemy type
+EntityFactory.register("snake",  (x, y, h, p) -> new Snake(x, y, h, p));
+EntityFactory.register("dragon", (x, y, h, p) -> new Dragon(x, y, h));
 ```
 
 ---
@@ -463,7 +478,11 @@ app/
 │   │   ├── tileeffect/PlantsEffect.java
 │   │   ├── tileeffect/TorchEffect.java
 │   │   └── utils/MoveInfo.java          # Tile collision helpers
-│   ├── levelmanager/LevelManager.java   # Level loading, enemy/portal management, HUD (singleton)
+│   ├── levelmanager/
+│   │   ├── LevelManager.java            # Level loading, enemy list, lives (singleton)
+│   │   ├── CollisionManager.java        # Attack and body collision resolution
+│   │   ├── LevelRenderer.java           # Camera, tile map, entity and goal drawing
+│   │   └── HUD.java                     # Hearts display
 │   ├── map/
 │   │   ├── Map.java                     # Map data model (grid + enemies + gate coords)
 │   │   └── MapManager.java              # JSON map loader (Gson)
@@ -472,6 +491,14 @@ app/
 │   │   ├── assets/*Factory.java         # Per-category asset loaders
 │   │   ├── tiles/Tile.java              # Tile constants (64×64 px)
 │   │   └── utils/SpriteSheet.java       # Sprite sheet cropper
+│   ├── screen/
+│   │   ├── Screen.java                  # Interface — draw() + default no-op handleClick()
+│   │   ├── PlayingScreen.java           # Background fill + levelManager.draw()
+│   │   ├── MenuScreen.java              # Menu UI + PLAY/QUIT click handling
+│   │   ├── PauseScreen.java             # Pause overlay + RESUME/MENU click handling
+│   │   ├── GameOverScreen.java          # Game-over overlay + RETRY/MENU click handling
+│   │   ├── LevelWonScreen.java          # Level-won overlay + NEXT/MENU click handling
+│   │   └── ScreenHelper.java            # Shared button constants + drawButton() utility
 │   ├── handle/
 │   │   ├── KeyHandler.java              # Keyboard input (static booleans)
 │   │   └── MouseHandler.java            # Mouse click routing per game state
@@ -479,8 +506,7 @@ app/
 │   └── utils/
 │       ├── GameStates.java              # MENU, PLAYING, PAUSE, GAME_OVER, LEVEL_WON
 │       ├── TileID.java                  # Tile ID → asset key mapping
-│       ├── LevelMaps.java               # Map name enum
-│       └── EntityTypes.java             # Entity type enum
+│       └── LevelMaps.java               # Map name enum
 └── res/textures/
     ├── maps/maps.json                   # Map grids + enemy spawn data (20×60 tiles)
     ├── player/                          # Player sprite sheets (run, jump, attack, idle, hurt)
@@ -563,7 +589,13 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 
 ## TODO
 
+### Game features
 - [ ] **Fix level 2 map** — tile layout and enemy placement need rework
 - [ ] **Fix level 3 map** — tile layout and enemy placement need rework
 - [ ] Add sound effects and background music
 - [ ] Add dragon attack animation and damage towards player
+
+### SOLID refactoring
+- [ ] **LSP** — remove the duplicate `draw()` signature from `Entity`; subclasses currently leave one of the two overloads empty, which breaks substitutability
+- [ ] **ISP** — split `Entity` into focused interfaces (e.g. `Drawable`, `Updatable`) so subclasses are not forced to implement methods they do not use
+- [ ] **DIP** — `LevelManager` depends on concrete `Player`, `Dragon`, `Snake`; introduce abstractions (e.g. reference enemies as `List<Entity>` everywhere and avoid `instanceof Dragon` casts)

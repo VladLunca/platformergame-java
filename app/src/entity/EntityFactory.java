@@ -1,19 +1,24 @@
 package entity;
 
-import entity.enamy.Dragon;
-import entity.enamy.Snake;
-import entity.player.Player;
-import utils.EntityTypes;
-
-import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.Map;
 
 public class EntityFactory {
-    public static Entity create(EntityTypes type, int x, int y, int health, int patrolRange) {
-        return switch (type) {
-            case EntityTypes.SNAKE  -> new Snake(x, y, health, patrolRange);
-            case EntityTypes.DRAGON -> new Dragon(x, y, health);
-            default -> throw new IllegalArgumentException("Unknown entity: " + type);
-        };
+
+    @FunctionalInterface
+    public interface Creator {
+        Entity create(int x, int y, int health, int patrolRange);
+    }
+
+    private static final Map<String, Creator> registry = new HashMap<>();
+
+    public static void register(String type, Creator creator) {
+        registry.put(type.toLowerCase(), creator);
+    }
+
+    public static Entity create(String type, int x, int y, int health, int patrolRange) {
+        Creator creator = registry.get(type.toLowerCase());
+        if (creator == null) throw new IllegalArgumentException("Unknown entity: " + type);
+        return creator.create(x, y, health, patrolRange);
     }
 }
