@@ -3,7 +3,9 @@ package levelmanager;
 import entity.Entity;
 import entity.enamy.Dragon;
 import entity.player.Player;
+import entity.prop.LevelGoal;
 import entity.prop.Portal;
+import entity.prop.Treasure;
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
 import graphics.tiles.Tile;
@@ -26,7 +28,7 @@ public class LevelManager {
     private Player player;
     private List<Entity> enemies = new ArrayList<>();
     private Map currentMap;
-    private List<Portal> portals = new ArrayList<>();
+    private LevelGoal goal = null;
     private boolean levelWon = false;
     private int currentLives = 3;
     private final HashMap<String, List<int[]>> spawnDataCache = new HashMap<>();
@@ -91,13 +93,14 @@ public class LevelManager {
         currentMap = mapManager.getMap(mapName);
         enemies = currentMap.getEnemies();
         levelWon = false;
-        portals = new ArrayList<>();
-        portals.add(new Portal(currentMap.getGateX(), currentMap.getGateY()));
+        goal = (level == 3)
+            ? new Treasure(currentMap.getGateX(), currentMap.getGateY())
+            : new Portal(currentMap.getGateX(), currentMap.getGateY());
 
         if (!spawnDataCache.containsKey(mapName)) {
             List<int[]> data = new ArrayList<>();
             for (Entity e : enemies) {
-                data.add(new int[]{e.getMapX(), e.getMapY(), e.getHealth()});
+                data.add(new int[]{e.getMapX(), e.getMapY(), (int) e.getHealth()});
             }
             spawnDataCache.put(mapName, data);
         }
@@ -153,11 +156,9 @@ public class LevelManager {
             }
         }
         boolean dragonsAllDead = allDragonsDead();
-        for (Portal p : portals) {
-            p.draw(g, player, dragonsAllDead);
-        }
+        goal.draw(g, player, dragonsAllDead);
         for (Entity e : enemies) {
-            if (!e.isDead()) e.draw(g, wnd, player);
+            e.draw(g, wnd, player);
         }
 
         player.draw(g, wnd, currentMap);
@@ -165,16 +166,20 @@ public class LevelManager {
     }
 
     private void drawHUD(Graphics g) {
-        BufferedImage[] hearts  = Assets.get("lives");
+        BufferedImage[] hearts   = Assets.get("lives");
         BufferedImage fullHeart  = hearts[0];
+        BufferedImage halfHeart  = hearts[1];
         BufferedImage emptyHeart = hearts[2];
         int heartSize = 36;
         int startX    = 12;
         int startY    = 12;
         int spacing   = 36;
-        int maxHearts = 5;
+        float hp = player.getHealth();
         for (int i = 0; i < 5; i++) {
-            BufferedImage img = (i < player.getHealth()) ? fullHeart : emptyHeart;
+            BufferedImage img;
+            if (i + 1 <= hp)  img = fullHeart;
+            else if (i < hp)  img = halfHeart;
+            else               img = emptyHeart;
             g.drawImage(img, startX + i * spacing, startY, heartSize, heartSize, null);
         }
     }
@@ -185,14 +190,8 @@ public class LevelManager {
             if (!e.isDead()) e.update(currentMap);
         }
         checkCollisions();
-        if (!levelWon) {
-            boolean dragonsAllDead = allDragonsDead();
-            for (Portal p : portals) {
-                if (p.tryActivate(player, dragonsAllDead)) {
-                    levelWon = true;
-                    break;
-                }
-            }
+        if (!levelWon && goal.tryActivate(player, allDragonsDead())) {
+            levelWon = true;
         }
     }
 

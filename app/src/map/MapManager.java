@@ -87,8 +87,9 @@ public class MapManager {
                     int x = enemyObj.get("x").getAsInt();
                     int y = enemyObj.get("y").getAsInt();
                     int lives = enemyObj.get("lives").getAsInt();
+                    int patrol = enemyObj.has("patrol") ? enemyObj.get("patrol").getAsInt() : 2;
                     EntityTypes entityType = EntityTypes.valueOf(type.toUpperCase().trim());
-                    enemies.add(EntityFactory.create(entityType,x * Tile.TILE_WIDTH,y * Tile.TILE_HEIGHT,lives));
+                    enemies.add(EntityFactory.create(entityType, x * Tile.TILE_WIDTH, y * Tile.TILE_HEIGHT, lives, patrol));
                 }
             }
             int gateX = 0, gateY = 0;

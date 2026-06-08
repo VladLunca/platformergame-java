@@ -8,6 +8,8 @@ import graphics.assets.Assets;
 import graphics.tiles.Tile;
 import handle.KeyHandler;
 
+import entity.tileeffect.TileEffectManager;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -18,7 +20,10 @@ public class Player extends Entity {
     private static volatile Player instance = null;
     private Boolean inAir = false;
     private Boolean attackStarted = false;
-    private boolean attackHasHit = false;
+    private int slowTimer = 0;
+    private final TileEffectManager tileEffectManager = new TileEffectManager();
+    private boolean attackHasHit  = false;
+    private int hurtTimer         = 0;
     private int invincibilityTimer = 0;
     private static final int INVINCIBILITY_FRAMES = 60;
     private static final int ATTACK_REACH = 55;
@@ -52,6 +57,7 @@ public class Player extends Entity {
     @Override
     public void update(map.Map map) {
         if (invincibilityTimer > 0) invincibilityTimer--;
+        if (slowTimer > 0) slowTimer--;
         if (knockbackVX != 0) {
             int newX = mapX + (int) knockbackVX;
             boolean xClear = MoveInfo.moveValid(newX + hitboxOffSet, mapY, map)
@@ -68,13 +74,14 @@ public class Player extends Entity {
         int speedOnX=0;
 
         float jumpSpeed=-20;
-        if (!attackStarted) {
+        int effectiveSpeed = slowTimer > 0 ? speed / 2 : speed;
+        if (!attackStarted && hurtTimer <= 0) {
         if (KeyHandler.isMoveLeft())
         {
             status = PlayerStatus.LEFT;
-            if(MoveInfo.moveValid(mapX - speed,mapY,map))
-                if(MoveInfo.moveValid(mapX - speed, mapY - hitbox.height,map))
-                    speedOnX= -speed;
+            if(MoveInfo.moveValid(mapX - effectiveSpeed,mapY,map))
+                if(MoveInfo.moveValid(mapX - effectiveSpeed, mapY - hitbox.height,map))
+                    speedOnX= -effectiveSpeed;
             hitboxOffSet = 0;
             playerOffsetX = -20;
         }
@@ -83,9 +90,9 @@ public class Player extends Entity {
             hitboxOffSet = 40;
             playerOffsetX = hitbox.width;
             status= PlayerStatus.RIGHT;
-            if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet + speed,mapY,map))
-                if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet  + speed, mapY - hitbox.height,map ))
-                    speedOnX=speed;
+            if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet + effectiveSpeed,mapY,map))
+                if(MoveInfo.moveValid(mapX + hitbox.width + hitboxOffSet + effectiveSpeed, mapY - hitbox.height,map ))
+                    speedOnX=effectiveSpeed;
         }
         if(KeyHandler.isJump() && !inAir)
         {
@@ -111,7 +118,7 @@ public class Player extends Entity {
         }
         if (inAir) {
             int checkY = airSpeed < 0
-                ? (int)(mapY + playerOffsetY + airSpeed)
+                ? (int)(mapY - hitbox.height + airSpeed)
                 : (int)(mapY + airSpeed);
             if (MoveInfo.moveValid(mapX + hitboxOffSet, checkY, map)
                     && MoveInfo.moveValid(mapX + hitboxOffSet + hitbox.width, checkY, map)) {
@@ -144,7 +151,7 @@ public class Player extends Entity {
             }
         }
 
-        if(KeyHandler.isAttack() && !inAir && !attackStarted)
+        if(KeyHandler.isAttack() && !inAir && !attackStarted && hurtTimer <= 0)
         {
             if(status == PlayerStatus.LEFT || status == PlayerStatus.IDLE_LEFT || status == PlayerStatus.JUMP_LEFT)
             {
@@ -169,6 +176,14 @@ public class Player extends Entity {
                 status = (status == PlayerStatus.ATTACK_RIGHT) ? PlayerStatus.IDLE_RIGHT : PlayerStatus.IDLE_LEFT;
             }
         }
+        if (hurtTimer > 0) {
+            hurtTimer--;
+            if (hurtTimer == 0) {
+                status = (status == PlayerStatus.HURT_RIGHT) ? PlayerStatus.IDLE_RIGHT : PlayerStatus.IDLE_LEFT;
+            }
+        }
+
+        tileEffectManager.update(this, map);
     }
 
     @Override
@@ -197,9 +212,12 @@ public class Player extends Entity {
         inAir               = false;
         attackStarted       = false;
         attackHasHit        = false;
+        hurtTimer           = 0;
         airSpeed            = 0f;
         knockbackVX         = 0f;
         invincibilityTimer  = 0;
+        slowTimer           = 0;
+        tileEffectManager.reset();
         frame               = 0;
         hitboxOffSet        = 40;
         playerOffsetX       = hitbox.width;
@@ -207,10 +225,15 @@ public class Player extends Entity {
 
 
     @Override
-    public void takeDamage(int amount) {
+    public void takeDamage(float amount) {
         if (invincibilityTimer <= 0) {
             health -= amount;
             invincibilityTimer = INVINCIBILITY_FRAMES;
+            boolean facingLeft = status == PlayerStatus.LEFT || status == PlayerStatus.IDLE_LEFT
+                || status == PlayerStatus.JUMP_LEFT || status == PlayerStatus.ATTACK_LEFT
+                || status == PlayerStatus.HURT_LEFT;
+            status = facingLeft ? PlayerStatus.HURT_LEFT : PlayerStatus.HURT_RIGHT;
+            hurtTimer = 30;
         }
     }
 
@@ -236,6 +259,10 @@ public class Player extends Entity {
 
     public boolean isAttackHit()           { return attackHasHit; }
     public void    setAttackHit(boolean v) { attackHasHit = v; }
+
+    public void  directDamage(float amount) { health -= amount; }
+    public void  applySlow(int frames)      { slowTimer = frames; }
+    public int   getHitboxOffset()          { return hitboxOffSet; }
 
     public void onCollision(Entity other) {
        // health = health - other.damage;
@@ -273,6 +300,12 @@ public class Player extends Entity {
                 break;
             case PlayerStatus.ATTACK_LEFT:
                 image=animations.get("playerAttackLeft");
+                break;
+            case PlayerStatus.HURT_RIGHT:
+                image=animations.get("playerHurtRight");
+                break;
+            case PlayerStatus.HURT_LEFT:
+                image=animations.get("playerHurtLeft");
                 break;
             default:
                 image=animations.get("playerIdleLeft");

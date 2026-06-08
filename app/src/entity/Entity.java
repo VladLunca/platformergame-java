@@ -12,7 +12,7 @@ public abstract class Entity {
     protected int cameraX;
     protected int cameraY;
     protected int speed;
-    protected int health;
+    protected float health;
     protected int damage;
     protected float knockbackVX;
     protected int frame;
@@ -47,7 +47,7 @@ public abstract class Entity {
         return cameraY;
     }
 
-    public int getHealth() {
+    public float getHealth() {
         return health;
     }
 
@@ -73,7 +73,7 @@ public abstract class Entity {
         return damage;
     }
 
-    public void takeDamage(int amount) {
+    public void takeDamage(float amount) {
         health -= amount;
     }
 

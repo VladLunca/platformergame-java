@@ -10,8 +10,8 @@ public class PropFactory implements AssetsFactory{
     @Override
     public void load(Map<String, BufferedImage[]> images) {
         SpriteSheet gates = new SpriteSheet(ImageLoader.LoadImage("/textures/utils/gates.png"));
-        images.put("gateLevel1", new BufferedImage[] { gates.crop(0, 0)});
-        images.put("gateLevel2", new BufferedImage[] {gates.crop(1, 0)});
+        images.put("gateLevel1", new BufferedImage[] { gates.crop(1, 0)});
+        images.put("gateLevel2", new BufferedImage[] { gates.crop(0, 0)});
 
         images.put("treasure", new BufferedImage[] {ImageLoader.LoadImage("/textures/utils/treasures.png")});
         images.put("treasureVase", new BufferedImage[] {ImageLoader.LoadImage("/textures/utils/treasures_vase.png")});

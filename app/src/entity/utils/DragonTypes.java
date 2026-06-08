@@ -1,5 +1,5 @@
 package entity.utils;
 
 public enum DragonTypes {
-    GREEN,RED,PURPLE,DEAD;
+    GREEN, BLUE, PURPLE, RED, DEAD;
 }

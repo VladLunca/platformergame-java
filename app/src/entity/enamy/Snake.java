@@ -22,17 +22,16 @@ public class Snake extends Entity {
     private int offsetX = 10;
     private int offsetY = 8;
     private int spawnX;
-    private static final int PATROL_RANGE = 2;
     private static final int PATROL_SPEED = 2;
     private int patrolLeft;
     private int patrolRight;
     private int patrolDir = 1;
 
-    public Snake(int mapX, int mapY, int health) {
+    public Snake(int mapX, int mapY, int health, int patrolRange) {
         super(mapX, mapY, health);
-        this.spawnX     = mapX;
-        this.patrolLeft  = mapX - PATROL_RANGE * Tile.TILE_WIDTH;
-        this.patrolRight = mapX + PATROL_RANGE * Tile.TILE_WIDTH;
+        this.spawnX      = mapX;
+        this.patrolLeft  = mapX - patrolRange * Tile.TILE_WIDTH;
+        this.patrolRight = mapX + patrolRange * Tile.TILE_WIDTH;
         animations.put("snakeMovingLeft", Assets.get("snakeMovingLeft"));
         animations.put("snakeMovingRight", Assets.get("snakeMovingRight"));
         animations.put("snakeIdle", Assets.get("snakeIdle"));
@@ -77,6 +76,7 @@ public class Snake extends Entity {
 
     @Override
     public void draw(Graphics g, GameWindow wnd, Player player) {
+        if (isDead()) return;
 
         int camX = player.getMapX() - wnd.GetWndWidth() / 2;
         int camY = player.getMapY() - wnd.GetWndHeight() / 2;
@@ -122,9 +122,10 @@ public class Snake extends Entity {
     @Override
     public void reset(int startX, int startY, int startHealth) {
         super.reset(startX, startY, startHealth);
+        int range = (patrolRight - spawnX) / Tile.TILE_WIDTH;
         this.spawnX        = startX;
-        this.patrolLeft    = startX - PATROL_RANGE * Tile.TILE_WIDTH;
-        this.patrolRight   = startX + PATROL_RANGE * Tile.TILE_WIDTH;
+        this.patrolLeft    = startX - range * Tile.TILE_WIDTH;
+        this.patrolRight   = startX + range * Tile.TILE_WIDTH;
         this.patrolDir     = 1;
         this.frame         = 0;
         this.animationTimer = 0;

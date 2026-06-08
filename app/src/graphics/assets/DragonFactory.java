@@ -12,7 +12,7 @@ public class DragonFactory implements AssetsFactory {
     public void load(Map<String, BufferedImage[]> images) {
         loadDragon(images, "dragonGreen",  "/textures/entities/enemies/dragons/green_dragon.png");
         loadDragon(images, "dragonPurple", "/textures/entities/enemies/dragons/purple_dragon.png");
-        loadDragon(images, "dragonBone",   "/textures/entities/enemies/dragons/bone_dragon.png");
+        loadDragon(images, "dragonBlue",   "/textures/entities/enemies/dragons/blue_dragon.png");
         images.put("dragonDead", new BufferedImage[]{ ImageLoader.LoadImage("/textures/entities/enemies/dragons/bones.png") });
     }
 
