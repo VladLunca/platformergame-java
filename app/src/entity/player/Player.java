@@ -181,7 +181,7 @@ public class Player extends Entity {
         tileEffectManager.update(this, map);
     }
 
-    @Override
+
     public static Player getInstance() { return instance; }
 
     public static Player createPlayer(int mapX, int mapY, int health) {
@@ -307,6 +307,12 @@ public class Player extends Entity {
             frame=0;
         g.drawImage(image[frame],cameraX + playerOffsetX, cameraY + playerOffsetY , Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);
     }
+
+    @Override
+    public void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug) {
+
+    }
+
     @Override
     public void drawHitbox(Graphics g) {
         g.setColor(Color.white);

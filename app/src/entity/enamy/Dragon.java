@@ -7,6 +7,7 @@ import entity.utils.MoveInfo;
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
 import graphics.tiles.Tile;
+import map.Map;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -124,6 +125,11 @@ public class Dragon extends Entity {
         int drawH = 2 * Tile.TILE_HEIGHT;
         g.drawImage(img, screenX - Tile.TILE_WIDTH / 2, screenY - 2 * Tile.TILE_HEIGHT, drawW, drawH, null);
         if (debug) drawHitbox(g);
+    }
+
+    @Override
+    public void draw(Graphics g, GameWindow wnd, Map map, boolean debug) {
+
     }
 
     @Override

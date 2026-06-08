@@ -58,6 +58,8 @@ public abstract class Entity {
         return hitbox;
     }
 
+    public abstract void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug);
+
     public abstract void drawHitbox(Graphics g);
 
     public boolean isDead() {

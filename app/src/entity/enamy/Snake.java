@@ -6,7 +6,6 @@ import entity.utils.SnakeStatus;
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
 import graphics.tiles.Tile;
-import utils.TileID;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
