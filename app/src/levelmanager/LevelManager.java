@@ -2,6 +2,7 @@ package levelmanager;
 
 import entity.Entity;
 import entity.enamy.Dragon;
+import entity.utils.DragonTypes;
 import entity.player.Player;
 import entity.prop.LevelGoal;
 import entity.prop.Portal;
@@ -92,6 +93,14 @@ public class LevelManager {
         };
         currentMap = mapManager.getMap(mapName);
         enemies = currentMap.getEnemies();
+        DragonTypes dragonType = switch (level) {
+            case 2  -> DragonTypes.BLUE;
+            case 3  -> DragonTypes.PURPLE;
+            default -> DragonTypes.GREEN;
+        };
+        for (Entity e : enemies) {
+            if (e instanceof Dragon d) d.setDragonType(dragonType);
+        }
         levelWon = false;
         goal = (level == 3)
             ? new Treasure(currentMap.getGateX(), currentMap.getGateY())
@@ -126,7 +135,7 @@ public class LevelManager {
             player.reset(spawnX, spawnY, currentLives);
         }
     }
-    public void draw(Graphics g, GameWindow wnd) {
+    public void draw(Graphics g, GameWindow wnd, boolean debug) {
         int rawCamX = player.getMapX() - wnd.GetWndWidth() / 2;
         int rawCamY = player.getMapY() - wnd.GetWndHeight() / 2;
 
@@ -158,10 +167,10 @@ public class LevelManager {
         boolean dragonsAllDead = allDragonsDead();
         goal.draw(g, player, dragonsAllDead);
         for (Entity e : enemies) {
-            e.draw(g, wnd, player);
+            e.draw(g, wnd, player, debug);
         }
 
-        player.draw(g, wnd, currentMap);
+        player.draw(g, wnd, currentMap, debug);
         drawHUD(g);
     }
 

@@ -241,7 +241,7 @@ public class Game implements Runnable {
     private void drawPlaying(Graphics g) {
         g.setColor(new Color(0, 140, 220));
         g.fillRect(0, 0, wnd.GetWndWidth(), wnd.GetWndHeight());
-        levelManager.draw(g, wnd);
+        levelManager.draw(g, wnd, handle.KeyHandler.isDebug());
     }
 
     private void drawPause(Graphics g) {

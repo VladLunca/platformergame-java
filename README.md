@@ -10,6 +10,7 @@ A 2D side-scrolling platformer written in pure Java (AWT/Swing), featuring anima
 - Defeat all **dragons** on the map — only then do the **portal gates** unlock
 - Walk through an unlocked gate to complete the level
 - You have **3 hearts**; losing all of them triggers a Game Over
+- Completing a level rewards you with **+1 heart** (max 5)
 
 ---
 
@@ -22,25 +23,320 @@ A 2D side-scrolling platformer written in pure Java (AWT/Swing), featuring anima
 | `W` | Jump |
 | `Space` | Attack |
 | `Escape` | Pause / Resume |
+| `F3` | Toggle debug hitbox overlay |
 
 ---
 
 ## Enemies
 
-| Enemy | Behaviour |
-|-------|-----------|
-| **Snake** | Patrols back and forth on platforms; deals 1 damage on contact |
-| **Dragon** | Boss enemy; must be killed to unlock the level gates |
+| Enemy | Behaviour | Damage |
+|-------|-----------|--------|
+| **Snake** | Patrols back and forth on platforms within a configurable range | 1 HP on contact |
+| **Dragon** | Chases player horizontally when within 3 tiles; has gravity; must be killed to unlock the level goal | 2 HP on contact |
 
 ---
 
 ## Levels
 
-| Level | Map | Key enemies |
-|-------|-----|-------------|
-| 1 | Green grass world | 4 snakes + 1 dragon |
-| 2 | Red castle | 3 snakes + 1 dragon |
-| 3 | Purple stone dungeon | 3 snakes + 1 dragon |
+| Level | Theme | Tile Set | Enemies | Level Goal |
+|-------|-------|----------|---------|------------|
+| 1 | Green grass world | Grass tileset | 4 snakes + 1 green dragon | Portal gate |
+| 2 | Red castle | Castle tileset | 3 snakes + 1 blue dragon | Portal gate |
+| 3 | Purple stone dungeon | Stone tileset | 3 snakes + 1 purple dragon | Treasure chest |
+
+---
+
+## Architecture
+
+### Class Diagram (UML)
+
+```mermaid
+classDiagram
+    direction TB
+
+    class Game {
+        -GameWindow wnd
+        -boolean runState
+        -Thread gameThread
+        -MapManager mapManager
+        -LevelManager levelManager
+        +createGame(title, width, height) Game
+        +StartGame()
+        +StopGame()
+        -update()
+        -Draw()
+    }
+
+    class Entity {
+        <<abstract>>
+        #int mapX
+        #int mapY
+        #int cameraX
+        #int cameraY
+        #int speed
+        #float health
+        #int damage
+        #float knockbackVX
+        #int frame
+        #Rectangle hitbox
+        +update()*
+        +update(Map)*
+        +draw(Graphics, GameWindow, Player, boolean)*
+        +draw(Graphics, GameWindow, Map, boolean)*
+        +drawHitbox(Graphics)*
+        +getScreenHitbox() Rectangle
+        +takeDamage(float)
+        +applyKnockback(int)
+        +isDead() boolean
+        +reset(int, int, int)
+    }
+
+    class Player {
+        -PlayerStatus status
+        -boolean inAir
+        -boolean attackStarted
+        -int slowTimer
+        -int hurtTimer
+        -int invincibilityTimer
+        -float airSpeed
+        -TileEffectManager tileEffectManager
+        +createPlayer(x, y, health) Player
+        +getInstance() Player
+        +takeDamage(float)
+        +directDamage(float)
+        +applySlow(int)
+        +applyKnockback(int)
+        +getAttackHitbox() Rectangle
+        +reset(int, int, int)
+    }
+
+    class Dragon {
+        -DragonTypes dragonType
+        -int animFrame
+        -boolean facingLeft
+        -float airSpeed
+        +setDragonType(DragonTypes)
+        +update(Map)
+        +reset(int, int, int)
+    }
+
+    class Snake {
+        -SnakeStatus status
+        -int patrolLeft
+        -int patrolRight
+        -int patrolDir
+        +update()
+        +update(Map)
+    }
+
+    class LevelManager {
+        -int level
+        -Player player
+        -List~Entity~ enemies
+        -Map currentMap
+        -LevelGoal goal
+        -int currentLives
+        +createLevelManager(MapManager) LevelManager
+        +loadLevel()
+        +update()
+        +draw(Graphics, GameWindow, boolean)
+        +nextLevel()
+        +resetLives()
+        +gainLife()
+        +isPlayerDead() boolean
+        +isLevelWon() boolean
+    }
+
+    class MapManager {
+        +createMapManager(path) MapManager
+        +getMap(name) Map
+    }
+
+    class Map {
+        -int[][] grid
+        -List~Entity~ enemies
+        -int gateX
+        -int gateY
+        -int width
+        -int height
+        +getGrid() int[][]
+        +getEnemies() List~Entity~
+        +getGateX() int
+        +getGateY() int
+    }
+
+    class LevelGoal {
+        <<interface>>
+        +draw(Graphics, Player, boolean)*
+        +tryActivate(Player, boolean) boolean*
+        +reset()*
+        +isActivated() boolean*
+    }
+
+    class Portal {
+        -int x
+        -int y
+        +draw(Graphics, Player, boolean)
+        +tryActivate(Player, boolean) boolean
+    }
+
+    class Treasure {
+        -int x
+        -int y
+        +draw(Graphics, Player, boolean)
+        +tryActivate(Player, boolean) boolean
+    }
+
+    class TileEffectManager {
+        -List~TileEffect~ effects
+        +update(Player, Map)
+        +reset()
+    }
+
+    class TileEffect {
+        <<interface>>
+        +getTileId() int*
+        +tick(Player, boolean)*
+        +reset()*
+    }
+
+    class PlantsEffect {
+        +getTileId() int
+        +tick(Player, boolean)
+        +reset()
+    }
+
+    class TorchEffect {
+        +getTileId() int
+        +tick(Player, boolean)
+        +reset()
+    }
+
+    class Assets {
+        -Map~String, BufferedImage[]~ registry
+        +Init()$
+        +get(key) BufferedImage[]$
+    }
+
+    class GameStates {
+        <<enumeration>>
+        MENU
+        PLAYING
+        PAUSE
+        GAME_OVER
+        LEVEL_WON
+    }
+
+    class KeyHandler {
+        +isMoveLeft() boolean$
+        +isMoveRight() boolean$
+        +isJump() boolean$
+        +isAttack() boolean$
+        +isEscape() boolean$
+        +isDebug() boolean$
+    }
+
+    Entity <|-- Player
+    Entity <|-- Dragon
+    Entity <|-- Snake
+    LevelGoal <|.. Portal
+    LevelGoal <|.. Treasure
+    TileEffect <|.. PlantsEffect
+    TileEffect <|.. TorchEffect
+
+    Game --> LevelManager
+    Game --> MapManager
+    Game ..> GameStates
+    LevelManager --> Player
+    LevelManager --> Map
+    LevelManager --> LevelGoal
+    LevelManager "1" o-- "*" Entity
+    MapManager "1" --> "*" Map
+    Player --> TileEffectManager
+    TileEffectManager "1" o-- "*" TileEffect
+    LevelManager ..> KeyHandler
+```
+
+---
+
+### Game State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> MENU : launch
+
+    MENU --> PLAYING    : click PLAY
+    MENU --> [*]        : click QUIT
+
+    PLAYING --> PAUSE   : Escape key
+    PLAYING --> GAME_OVER : player health ≤ 0
+    PLAYING --> LEVEL_WON : goal activated
+
+    PAUSE --> PLAYING   : Escape / click RESUME
+    PAUSE --> MENU      : click MAIN MENU
+
+    GAME_OVER --> PLAYING : click RETRY (resets lives)
+    GAME_OVER --> MENU    : click MAIN MENU
+
+    LEVEL_WON --> PLAYING : click NEXT LEVEL (level < 3)
+    LEVEL_WON --> MENU    : click MAIN MENU
+```
+
+---
+
+### Game Loop
+
+The game loop runs at **60 UPS / 60 FPS** using a fixed-timestep accumulator:
+
+```
+while running:
+    delta += elapsed / timePerUpdate
+    while delta >= 1:
+        update()          ← logic (input, physics, AI, collision)
+        delta--
+    if frameTimerElapsed:
+        Draw()            ← render current state
+```
+
+Update order per frame (state `PLAYING`):
+1. `Player.update(map)` — input, movement, physics, tile effects
+2. `Enemy.update(map)` — AI movement (patrol / chase), gravity, knockback
+3. `LevelManager.checkCollisions()` — attack hits, body contacts, knockback
+4. `LevelGoal.tryActivate(player, dragonsAllDead)` — win condition
+
+Draw order per frame:
+1. Background fill (sky blue)
+2. Tile map (only visible tiles — culled by camera bounds)
+3. `LevelGoal.draw()` — portal / treasure
+4. Enemies
+5. Player
+6. HUD (hearts)
+
+---
+
+### Coordinate System
+
+- **Tile size:** 64 × 64 px
+- `mapX`, `mapY` are world-space pixel coordinates
+- `mapY` for `Player` and `Dragon` = **bottom of hitbox** (feet position)
+- Camera is clamped so the map edge never shows the background
+- Screen position formula for all entities:
+  ```
+  screenX = entity.mapX - player.mapX + player.cameraX
+  screenY = entity.mapY - player.mapY + player.cameraY + TILE_HEIGHT
+  ```
+  The `+TILE_HEIGHT` offset compensates for how tiles are drawn one row lower than their grid index.
+
+---
+
+### Tile Effects
+
+Tile effects are processed each frame inside `Player.update()` via `TileEffectManager`. Every tile that overlaps the player's hitbox triggers the matching effect.
+
+| Effect class | Tile ID | Tile | Behaviour |
+|--------------|---------|------|-----------|
+| `PlantsEffect` | 3 | Plants (level 1) | `directDamage(0.5)` every 60 frames, lingers 120 frames after last contact |
+| `TorchEffect`  | 2 | Torch (level 2) | `takeDamage(1)` + `applySlow(60)` on contact, respects invincibility frames |
 
 ---
 
@@ -49,35 +345,44 @@ A 2D side-scrolling platformer written in pure Java (AWT/Swing), featuring anima
 ```
 app/
 ├── src/
-│   ├── Main.java                   # Entry point (1280×640 window)
-│   ├── Game.java                   # Game loop, state machine, draw/update dispatch
+│   ├── Main.java                        # Entry point (1280×640 window)
+│   ├── Game.java                        # Game loop, state machine, draw/update dispatch
 │   ├── entity/
-│   │   ├── Entity.java             # Abstract base for all entities
-│   │   ├── player/Player.java      # Player movement, jump, attack, camera
-│   │   ├── enamy/Snake.java        # Snake patrol AI
-│   │   ├── enamy/Dragon.java       # Dragon (boss)
-│   │   ├── prop/Portal.java        # Interactive gate — unlocks after dragons die
-│   │   └── utils/MoveInfo.java     # Tile collision helpers
-│   ├── levelmanager/LevelManager.java  # Level loading, enemy/portal management, HUD
+│   │   ├── Entity.java                  # Abstract base for all entities
+│   │   ├── player/Player.java           # Player movement, jump, attack, camera (singleton)
+│   │   ├── enamy/Snake.java             # Snake patrol AI
+│   │   ├── enamy/Dragon.java            # Dragon boss — chases player, has gravity
+│   │   ├── prop/LevelGoal.java          # Interface for level completion triggers
+│   │   ├── prop/Portal.java             # Gate — unlocks after all dragons die
+│   │   ├── prop/Treasure.java           # Chest — used as goal in level 3
+│   │   ├── tileeffect/TileEffect.java   # Interface for tile-based effects on player
+│   │   ├── tileeffect/TileEffectManager.java
+│   │   ├── tileeffect/PlantsEffect.java
+│   │   ├── tileeffect/TorchEffect.java
+│   │   └── utils/MoveInfo.java          # Tile collision helpers
+│   ├── levelmanager/LevelManager.java   # Level loading, enemy/portal management, HUD (singleton)
 │   ├── map/
-│   │   ├── Map.java                # Map data model
-│   │   └── MapManager.java         # JSON map loader (Gson)
+│   │   ├── Map.java                     # Map data model (grid + enemies + gate coords)
+│   │   └── MapManager.java              # JSON map loader (Gson)
 │   ├── graphics/
-│   │   ├── assets/Assets.java      # Central image registry
-│   │   ├── assets/*Factory.java    # Per-category asset loaders
-│   │   ├── tiles/Tile.java         # Tile constants (64×64 px)
-│   │   └── utils/SpriteSheet.java  # Sprite sheet cropper
+│   │   ├── assets/Assets.java           # Central image registry (static map)
+│   │   ├── assets/*Factory.java         # Per-category asset loaders
+│   │   ├── tiles/Tile.java              # Tile constants (64×64 px)
+│   │   └── utils/SpriteSheet.java       # Sprite sheet cropper
 │   ├── handle/
-│   │   ├── KeyHandler.java         # Keyboard input
-│   │   └── MouseHandler.java       # Mouse click routing per game state
+│   │   ├── KeyHandler.java              # Keyboard input (static booleans)
+│   │   └── MouseHandler.java            # Mouse click routing per game state
+│   ├── gamewindow/GameWindow.java        # JFrame + Canvas wrapper
 │   └── utils/
-│       ├── GameStates.java         # MENU, PLAYING, PAUSE, GAME_OVER, LEVEL_WON
-│       └── TileID.java             # Tile ID → asset key mapping
+│       ├── GameStates.java              # MENU, PLAYING, PAUSE, GAME_OVER, LEVEL_WON
+│       ├── TileID.java                  # Tile ID → asset key mapping
+│       ├── LevelMaps.java               # Map name enum
+│       └── EntityTypes.java             # Entity type enum
 └── res/textures/
-    ├── maps/maps.json              # Map grids + enemy spawn data (20×60 tiles)
-    ├── player/                     # Player sprite sheets (run, jump, attack, idle, hurt)
-    ├── enemies/                    # Snake & dragon sprites
-    └── utils/                      # Props, tiles, UI, lives, gates
+    ├── maps/maps.json                   # Map grids + enemy spawn data (20×60 tiles)
+    ├── player/                          # Player sprite sheets (run, jump, attack, idle, hurt)
+    ├── enemies/                         # Snake & dragon sprites
+    └── utils/                           # Props, tiles, UI, lives, gates
 ```
 
 ---
@@ -150,5 +455,14 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 
 - [OpenGameArt.org](https://opengameart.org) — Free game assets for everyone
 - [PlatForge Collection on OGA](https://opengameart.org/content/art-from-platforge) — All PlatForge art assets
-  ##To DO : fix the bug with the knockback, make the dragon attack too, fix level 2 and 3 maps, add interactions with flowers and torch tiles
-  
+
+---
+
+## TODO
+
+- [ ] Fix knockback bug (player gets launched too far)
+- [ ] Add dragon attack animation and damage towards player
+- [ ] **Fix level 2 map** — tile layout and enemy placement need rework
+- [ ] **Fix level 3 map** — tile layout and enemy placement need rework
+- [ ] Add interactions with flowers (plants tile) and torch tiles (damage/slow already implemented, needs visual feedback)
+- [ ] Add sound effects and background music

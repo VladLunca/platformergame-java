@@ -75,7 +75,7 @@ public class Snake extends Entity {
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, Player player) {
+    public void draw(Graphics g, GameWindow wnd, Player player, boolean debug) {
         if (isDead()) return;
 
         int camX = player.getMapX() - wnd.GetWndWidth() / 2;
@@ -99,10 +99,10 @@ public class Snake extends Entity {
         int f = Math.min(frame, anim.length - 1);
         g.drawImage(anim[f], screenX, screenY + Tile.TILE_HEIGHT + Tile.TILE_HEIGHT - hitbox.height,
                 Tile.TILE_WIDTH, Tile.TILE_HEIGHT, null);
-        drawHitbox(g);
+        if (debug) drawHitbox(g);
     }
     @Override
-    public void draw(Graphics g, GameWindow wnd, map.Map map) {
+    public void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug) {
 
     }
 

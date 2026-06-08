@@ -94,7 +94,7 @@ public class Dragon extends Entity {
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, Player player) {
+    public void draw(Graphics g, GameWindow wnd, Player player, boolean debug) {
         int camX = player.getMapX() - wnd.GetWndWidth()  / 2;
         int camY = player.getMapY() - wnd.GetWndHeight() / 2;
 
@@ -126,11 +126,11 @@ public class Dragon extends Entity {
         int drawW = 2 * Tile.TILE_WIDTH;
         int drawH = 2 * Tile.TILE_HEIGHT;
         g.drawImage(img, screenX - Tile.TILE_WIDTH / 2, screenY - 2 * Tile.TILE_HEIGHT, drawW, drawH, null);
-        drawHitbox(g);
+        if (debug) drawHitbox(g);
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, map.Map map) {}
+    public void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug) {}
 
     @Override
     public void drawHitbox(Graphics g) {

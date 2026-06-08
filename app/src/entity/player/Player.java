@@ -187,9 +187,7 @@ public class Player extends Entity {
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, Player p) {
-
-    }
+    public void draw(Graphics g, GameWindow wnd, Player p, boolean debug) {}
 
     public static Player getInstance() { return instance; }
 
@@ -269,7 +267,7 @@ public class Player extends Entity {
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, map.Map map) {
+    public void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug) {
 
         BufferedImage[] image ;
         switch (status) {
@@ -311,7 +309,7 @@ public class Player extends Entity {
                 image=animations.get("playerIdleLeft");
                 break;
         }
-        drawHitbox(g);
+        if (debug) drawHitbox(g);
         if(frame >= image.length)
             frame=0;
         g.drawImage(image[frame],cameraX + playerOffsetX, cameraY + playerOffsetY , Tile.TILE_WIDTH,Tile.TILE_HEIGHT,null);

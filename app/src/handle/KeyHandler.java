@@ -9,6 +9,7 @@ public class KeyHandler implements KeyListener {
     private static boolean moveRight;
     private static boolean attack;
     private static boolean escape;
+    private static boolean debug;
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -24,6 +25,10 @@ public class KeyHandler implements KeyListener {
         if(keyCode == KeyEvent.VK_ESCAPE)
         {
             escape = true;
+        }
+        if(keyCode == KeyEvent.VK_F3)
+        {
+            debug = !debug;
         }
 
         if(keyCode == KeyEvent.VK_A)
@@ -85,5 +90,9 @@ public class KeyHandler implements KeyListener {
 
     public static void resetEscape() {
         escape = false;
+    }
+
+    public static boolean isDebug() {
+        return debug;
     }
 }
