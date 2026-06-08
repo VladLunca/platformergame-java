@@ -137,6 +137,8 @@ public class Dragon extends Entity {
         g.setColor(Color.ORANGE);
         Rectangle hb = getScreenHitbox();
         g.drawRect(hb.x, hb.y, hb.width, hb.height);
+
+
     }
 
     @Override
