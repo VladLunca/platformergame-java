@@ -458,11 +458,102 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 
 ---
 
+## Design Patterns
+
+### Singleton
+**Classes:** `Game`, `Player`, `LevelManager`, `MapManager`
+
+Each of these classes has exactly one instance for the lifetime of the session. Access is provided through static factory methods (`createGame`, `createPlayer`, etc.) with **double-checked locking** for thread-safety. The reason is that the global game state (current map, player, level) must be unique and reachable from anywhere in the codebase without being passed explicitly as parameters.
+
+```java
+// example — Player
+public static Player createPlayer(int mapX, int mapY, int health) {
+    if (instance == null) {
+        synchronized (Player.class) {
+            if (instance == null) instance = new Player(mapX, mapY, health);
+        }
+    }
+    return instance;
+}
+```
+
+---
+
+### Factory Method
+**Class:** `EntityFactory`
+
+`EntityFactory.create(EntityTypes, x, y, health, patrolRange)` centralises entity instantiation. `MapManager` calls the factory while parsing the JSON map, without needing to know which concrete subclass is being created. Adding a new enemy type only requires a new branch in the `switch`, with no changes to the map-loading code.
+
+```java
+public static Entity create(EntityTypes type, int x, int y, int health, int patrolRange) {
+    return switch (type) {
+        case SNAKE  -> new Snake(x, y, health, patrolRange);
+        case DRAGON -> new Dragon(x, y, health);
+        default -> throw new IllegalArgumentException("Unknown entity: " + type);
+    };
+}
+```
+
+`Assets.Init()` follows the same principle: it iterates a list of `AssetsFactory` implementations (`PlayerFactory`, `DragonFactory`, `SnakeFactory`, etc.), each responsible for loading its own set of images into the global registry.
+
+---
+
+### Template Method
+**Abstract class:** `Entity`
+
+`Entity` defines the behavioural skeleton for every entity through abstract methods (`update()`, `update(Map)`, `draw(...)`, `drawHitbox()`). Subclasses (`Player`, `Dragon`, `Snake`) fill in the concrete details, while the calling logic in `LevelManager` stays uniform:
+
+```java
+for (Entity e : enemies) {
+    if (!e.isDead()) e.update(currentMap);  // polymorphism — each entity knows what to do
+}
+```
+
+---
+
+### Strategy (via interfaces)
+**Interfaces:** `LevelGoal`, `TileEffect`
+
+- `LevelGoal` — `Portal` (levels 1–2) and `Treasure` (level 3) implement the same interface. `LevelManager` is unaware of which goal type is active; it simply calls `goal.tryActivate(player, dragonsAllDead)`. Supporting a new win condition for a new level only requires a new class.
+
+- `TileEffect` — `PlantsEffect` and `TorchEffect` are interchangeable effect strategies. `TileEffectManager` iterates them uniformly without knowing each one's implementation.
+
+---
+
+### Command (Handler Map)
+**Class:** `MouseHandler`
+
+Mouse clicks are routed through an `EnumMap<GameStates, Consumer<MouseEvent>>`. Each game state registers its own handler in `Game.InitGame()`, and `MouseHandler` knows nothing about UI logic — it simply invokes the handler mapped to the current state. Adding a new screen only requires one `MouseHandler.register(NEW_STATE, handler)` call.
+
+```java
+// registration in Game
+MouseHandler.register(GameStates.MENU,  this::handleMenuClick);
+MouseHandler.register(GameStates.PAUSE, this::handlePauseClick);
+
+// dispatch in MouseHandler
+Consumer<MouseEvent> h = handlers.get(GameStates.current);
+if (h != null) h.accept(e);
+```
+
+---
+
+### State Machine
+**Enum + switch:** `GameStates` + `Game.update()` / `Game.Draw()`
+
+The current game state (`MENU`, `PLAYING`, `PAUSE`, `GAME_OVER`, `LEVEL_WON`) governs both the update logic and the render method. Transitions are explicit and controlled — triggered by input or by in-game conditions — eliminating scattered `if/else` branches throughout the code.
+
+---
+
+### Registry (Service Locator)
+**Class:** `Assets`
+
+`Assets` is a static registry (`Map<String, BufferedImage[]>`) populated once at startup and accessed globally via `Assets.get("key")`. The alternative — passing images through constructors — would introduce unnecessary coupling. Any class that needs a sprite retrieves it directly, with no explicit dependency on the factory that loaded it.
+
+---
+
 ## TODO
 
-- [ ] Fix knockback bug (player gets launched too far)
-- [ ] Add dragon attack animation and damage towards player
 - [ ] **Fix level 2 map** — tile layout and enemy placement need rework
 - [ ] **Fix level 3 map** — tile layout and enemy placement need rework
-- [ ] Add interactions with flowers (plants tile) and torch tiles (damage/slow already implemented, needs visual feedback)
 - [ ] Add sound effects and background music
+- [ ] Add dragon attack animation and damage towards player
