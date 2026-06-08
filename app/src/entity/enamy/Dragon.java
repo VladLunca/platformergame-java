@@ -34,9 +34,6 @@ public class Dragon extends Entity {
     }
 
     @Override
-    public void update() {}
-
-    @Override
     public void update(map.Map map) {
         animationTimer++;
         if (animationTimer >= ANIM_DELAY) {
@@ -128,9 +125,6 @@ public class Dragon extends Entity {
         g.drawImage(img, screenX - Tile.TILE_WIDTH / 2, screenY - 2 * Tile.TILE_HEIGHT, drawW, drawH, null);
         if (debug) drawHitbox(g);
     }
-
-    @Override
-    public void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug) {}
 
     @Override
     public void drawHitbox(Graphics g) {

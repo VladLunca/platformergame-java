@@ -38,8 +38,7 @@ public class Snake extends Entity {
         this.hitbox = new Rectangle(40, 50);
         this.damage = 1;
     }
-    @Override
-    public void update() {
+    private void tick() {
         animationTimer++;
         if (animationTimer >= 10) {
             animationTimer = 0;
@@ -67,7 +66,7 @@ public class Snake extends Entity {
 
     @Override
     public void update(map.Map map) {
-        update();
+        tick();
     }
 
     public void onCollision(Entity other) {

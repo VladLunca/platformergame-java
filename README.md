@@ -56,15 +56,44 @@ classDiagram
 
     class Game {
         -GameWindow wnd
-        -boolean runState
-        -Thread gameThread
         -MapManager mapManager
         -LevelManager levelManager
-        +createGame(title, width, height) Game
+        -MenuScreen menuScreen
+        -PlayingScreen playingScreen
+        -PauseScreen pauseScreen
+        -GameOverScreen gameOverScreen
+        -LevelWonScreen levelWonScreen
+        +createGame(title, width, height) Game$
         +StartGame()
         +StopGame()
         -update()
         -Draw()
+    }
+
+    class Screen {
+        <<interface>>
+        +draw(Graphics, GameWindow)*
+        +handleClick(MouseEvent)
+    }
+
+    class PlayingScreen {
+        +draw(Graphics, GameWindow)
+    }
+    class MenuScreen {
+        +draw(Graphics, GameWindow)
+        +handleClick(MouseEvent)
+    }
+    class PauseScreen {
+        +draw(Graphics, GameWindow)
+        +handleClick(MouseEvent)
+    }
+    class GameOverScreen {
+        +draw(Graphics, GameWindow)
+        +handleClick(MouseEvent)
+    }
+    class LevelWonScreen {
+        +draw(Graphics, GameWindow)
+        +handleClick(MouseEvent)
     }
 
     class Entity {
@@ -73,16 +102,12 @@ classDiagram
         #int mapY
         #int cameraX
         #int cameraY
-        #int speed
         #float health
         #int damage
         #float knockbackVX
-        #int frame
         #Rectangle hitbox
-        +update()*
         +update(Map)*
         +draw(Graphics, GameWindow, Player, boolean)*
-        +draw(Graphics, GameWindow, Map, boolean)*
         +drawHitbox(Graphics)*
         +getScreenHitbox() Rectangle
         +takeDamage(float)
@@ -100,8 +125,8 @@ classDiagram
         -int invincibilityTimer
         -float airSpeed
         -TileEffectManager tileEffectManager
-        +createPlayer(x, y, health) Player
-        +getInstance() Player
+        +createPlayer(x, y, health) Player$
+        +getInstance() Player$
         +takeDamage(float)
         +directDamage(float)
         +applySlow(int)
@@ -125,8 +150,17 @@ classDiagram
         -int patrolLeft
         -int patrolRight
         -int patrolDir
-        +update()
         +update(Map)
+    }
+
+    class EntityFactory {
+        -Map~String, Creator~ registry$
+        +register(String, Creator)$
+        +create(String, x, y, health, p) Entity$
+    }
+    class Creator {
+        <<interface>>
+        +create(x, y, health, patrolRange) Entity*
     }
 
     class LevelManager {
@@ -136,7 +170,9 @@ classDiagram
         -Map currentMap
         -LevelGoal goal
         -int currentLives
-        +createLevelManager(MapManager) LevelManager
+        -CollisionManager collisionManager
+        -LevelRenderer renderer
+        +createLevelManager(MapManager) LevelManager$
         +loadLevel()
         +update()
         +draw(Graphics, GameWindow, boolean)
@@ -147,8 +183,21 @@ classDiagram
         +isLevelWon() boolean
     }
 
+    class CollisionManager {
+        +check(Player, List~Entity~)
+    }
+
+    class LevelRenderer {
+        -HUD hud
+        +draw(Graphics, GameWindow, Map, Player, List~Entity~, LevelGoal, boolean, boolean)
+    }
+
+    class HUD {
+        +draw(Graphics, Player)
+    }
+
     class MapManager {
-        +createMapManager(path) MapManager
+        +createMapManager(path) MapManager$
         +getMap(name) Map
     }
 
@@ -157,8 +206,6 @@ classDiagram
         -List~Entity~ enemies
         -int gateX
         -int gateY
-        -int width
-        -int height
         +getGrid() int[][]
         +getEnemies() List~Entity~
         +getGateX() int
@@ -174,15 +221,11 @@ classDiagram
     }
 
     class Portal {
-        -int x
-        -int y
         +draw(Graphics, Player, boolean)
         +tryActivate(Player, boolean) boolean
     }
 
     class Treasure {
-        -int x
-        -int y
         +draw(Graphics, Player, boolean)
         +tryActivate(Player, boolean) boolean
     }
@@ -203,17 +246,15 @@ classDiagram
     class PlantsEffect {
         +getTileId() int
         +tick(Player, boolean)
-        +reset()
     }
 
     class TorchEffect {
         +getTileId() int
         +tick(Player, boolean)
-        +reset()
     }
 
     class Assets {
-        -Map~String, BufferedImage[]~ registry
+        -Map~String, BufferedImage[]~ images$
         +Init()$
         +get(key) BufferedImage[]$
     }
@@ -236,25 +277,53 @@ classDiagram
         +isDebug() boolean$
     }
 
+    Screen <|.. PlayingScreen
+    Screen <|.. MenuScreen
+    Screen <|.. PauseScreen
+    Screen <|.. GameOverScreen
+    Screen <|.. LevelWonScreen
+
     Entity <|-- Player
     Entity <|-- Dragon
     Entity <|-- Snake
+
     LevelGoal <|.. Portal
     LevelGoal <|.. Treasure
+
     TileEffect <|.. PlantsEffect
     TileEffect <|.. TorchEffect
+
+    EntityFactory --> Creator
+    Creator ..> Snake  : creates
+    Creator ..> Dragon : creates
 
     Game --> LevelManager
     Game --> MapManager
     Game ..> GameStates
+    Game "1" o-- "5" Screen
+
     LevelManager --> Player
     LevelManager --> Map
     LevelManager --> LevelGoal
+    LevelManager --> CollisionManager
+    LevelManager --> LevelRenderer
     LevelManager "1" o-- "*" Entity
+    LevelRenderer --> HUD
+
     MapManager "1" --> "*" Map
+    MapManager ..> EntityFactory
+
     Player --> TileEffectManager
     TileEffectManager "1" o-- "*" TileEffect
-    LevelManager ..> KeyHandler
+
+    PauseScreen --> PlayingScreen
+    GameOverScreen --> PlayingScreen
+    LevelWonScreen --> PlayingScreen
+
+    MenuScreen --> LevelManager
+    GameOverScreen --> LevelManager
+    LevelWonScreen --> LevelManager
+    PlayingScreen --> LevelManager
 ```
 
 ---
@@ -352,11 +421,13 @@ EntityFactory.register("dragon", (x, y, h, p) -> new Dragon(x, y, h));
 Mouse clicks are routed through an `EnumMap<GameStates, Consumer<MouseEvent>>`. Each game state registers its own handler in `Game.InitGame()`, and `MouseHandler` knows nothing about UI logic — it simply invokes the handler mapped to the current state. Adding a new screen only requires one `MouseHandler.register(NEW_STATE, handler)` call.
 
 ```java
-// registration in Game
-MouseHandler.register(GameStates.MENU,  this::handleMenuClick);
-MouseHandler.register(GameStates.PAUSE, this::handlePauseClick);
+// registration in Game — each screen owns its own handler
+MouseHandler.register(GameStates.MENU,      menuScreen::handleClick);
+MouseHandler.register(GameStates.PAUSE,     pauseScreen::handleClick);
+MouseHandler.register(GameStates.GAME_OVER, gameOverScreen::handleClick);
+MouseHandler.register(GameStates.LEVEL_WON, levelWonScreen::handleClick);
 
-// dispatch in MouseHandler
+// dispatch in MouseHandler — Game knows nothing about UI logic
 Consumer<MouseEvent> h = handlers.get(GameStates.current);
 if (h != null) h.accept(e);
 ```
@@ -596,6 +667,4 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 - [ ] Add dragon attack animation and damage towards player
 
 ### SOLID refactoring
-- [ ] **LSP** — remove the duplicate `draw()` signature from `Entity`; subclasses currently leave one of the two overloads empty, which breaks substitutability
-- [ ] **ISP** — split `Entity` into focused interfaces (e.g. `Drawable`, `Updatable`) so subclasses are not forced to implement methods they do not use
 - [ ] **DIP** — `LevelManager` depends on concrete `Player`, `Dragon`, `Snake`; introduce abstractions (e.g. reference enemies as `List<Entity>` everywhere and avoid `instanceof Dragon` casts)

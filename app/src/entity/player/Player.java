@@ -50,11 +50,6 @@ public class Player extends Entity {
     }
 
     @Override
-    public void update() {
-
-    }
-
-    @Override
     public void update(map.Map map) {
         if (invincibilityTimer > 0) invincibilityTimer--;
         if (slowTimer > 0) slowTimer--;
@@ -187,8 +182,6 @@ public class Player extends Entity {
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, Player p, boolean debug) {}
-
     public static Player getInstance() { return instance; }
 
     public static Player createPlayer(int mapX, int mapY, int health) {
@@ -267,7 +260,7 @@ public class Player extends Entity {
     }
 
     @Override
-    public void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug) {
+    public void draw(Graphics g, GameWindow wnd, Player player, boolean debug) {
 
         BufferedImage[] image ;
         switch (status) {

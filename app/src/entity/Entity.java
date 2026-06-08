@@ -1,7 +1,6 @@
 package entity;
 
 import entity.player.Player;
-import entity.utils.PlayerStatus;
 import gamewindow.GameWindow;
 
 import java.awt.*;
@@ -23,13 +22,9 @@ public abstract class Entity {
         this.mapY = mapy;
         this.health = health;
     }
-    public abstract void update();
-
     public abstract void update(map.Map map);
 
-    public abstract void draw(Graphics g, GameWindow wnd, Player p, boolean debug);
-
-    public abstract void draw(Graphics g, GameWindow wnd, map.Map map, boolean debug);
+    public abstract void draw(Graphics g, GameWindow wnd, Player player, boolean debug);
 
 
     public int  getMapX() {

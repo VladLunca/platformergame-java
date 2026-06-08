@@ -53,7 +53,7 @@ public class LevelRenderer {
         for (Entity e : enemies) {
             e.draw(g, wnd, player, debug);
         }
-        player.draw(g, wnd, map, debug);
+        player.draw(g, wnd, player, debug);
         hud.draw(g, player);
     }
 }
