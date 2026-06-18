@@ -113,6 +113,7 @@ classDiagram
         +takeDamage(float)
         +applyKnockback(int)
         +isDead() boolean
+        +countsTowardLevelGoal() boolean
         +reset(int, int, int)
     }
 
@@ -140,8 +141,8 @@ classDiagram
         -int animFrame
         -boolean facingLeft
         -float airSpeed
-        +setDragonType(DragonTypes)
         +update(Map)
+        +countsTowardLevelGoal() boolean
         +reset(int, int, int)
     }
 
@@ -352,9 +353,9 @@ public static Player createPlayer(int mapX, int mapY, int health) {
 ### Extensible Factory (Registry-based Factory)
 **Class:** `EntityFactory`
 
-`EntityFactory` centralises entity instantiation without knowing anything about concrete types. Instead of a `switch`, it holds a `Map<String, Creator>` registry. Each entity type registers its own constructor lambda from `Game.InitGame()` — `EntityFactory` itself never needs to change when a new enemy is added.
+`EntityFactory` centralises entity instantiation without knowing anything about concrete types. Instead of a `switch`, it holds a `Map<String, Creator>` registry. Each entity type registers its own constructor lambda from the `Game` constructor — `EntityFactory` itself never needs to change when a new enemy is added.
 
-`MapManager` reads the entity type directly as a string from JSON and passes it straight to the factory, with no intermediate enum conversion.
+`MapManager` reads the entity type directly as a string from JSON and passes it straight to the factory, with no intermediate enum conversion. Dragon colour is data-driven too: the map declares `dragon`, `dragon_blue` or `dragon_purple`, each registered to a `Creator` that builds a `Dragon` with the matching `DragonTypes`. The level loader no longer needs to inspect or cast entities to set their type.
 
 `Assets.Init()` follows the same principle: it iterates a list of `AssetsFactory` implementations (`PlayerFactory`, `DragonFactory`, `SnakeFactory`, etc.), each responsible for loading its own set of images into the global registry.
 
@@ -408,9 +409,11 @@ public static Entity create(String type, int x, int y, int health, int patrolRan
     return creator.create(x, y, health, patrolRange);
 }
 
-// Game.java — only place that changes when adding a new enemy type
-EntityFactory.register("snake",  (x, y, h, p) -> new Snake(x, y, h, p));
-EntityFactory.register("dragon", (x, y, h, p) -> new Dragon(x, y, h));
+// Game.java (constructor) — only place that changes when adding a new enemy type
+EntityFactory.register("snake",         (x, y, h, p) -> new Snake(x, y, h, p));
+EntityFactory.register("dragon",        (x, y, h, p) -> new Dragon(x, y, h, DragonTypes.GREEN));
+EntityFactory.register("dragon_blue",   (x, y, h, p) -> new Dragon(x, y, h, DragonTypes.BLUE));
+EntityFactory.register("dragon_purple", (x, y, h, p) -> new Dragon(x, y, h, DragonTypes.PURPLE));
 ```
 
 ---
@@ -437,7 +440,7 @@ if (h != null) h.accept(e);
 ### State Machine
 **Enum + switch:** `GameStates` + `Game.update()` / `Game.Draw()`
 
-The current game state (`MENU`, `PLAYING`, `PAUSE`, `GAME_OVER`, `LEVEL_WON`) governs both the update logic and the render method. Transitions are explicit and controlled — triggered by input or by in-game conditions — eliminating scattered `if/else` branches throughout the code.
+The current game state (`MENU`, `PLAYING`, `PAUSE`, `GAME_OVER`, `LEVEL_WON`) governs both the update logic and the render method. Transitions are explicit and controlled — triggered by input or by in-game conditions — eliminating scattered `if/else` branches throughout the code. Finishing the final level is still a `LEVEL_WON` state — `LevelWonScreen` simply swaps in the "game won" UI when it is the last level.
 
 ---
 
@@ -475,7 +478,7 @@ stateDiagram-v2
 
 ### Game Loop
 
-The game loop runs at **60 UPS / 60 FPS** using a fixed-timestep accumulator:
+The game loop runs the logic at **60 UPS** using a fixed-timestep accumulator. Rendering is throttled separately by a frame timer; with the current constant (`timePerFrame = 2_000_000_000 / 60`) the draw cap works out to **≈30 FPS**:
 
 ```
 while running:
@@ -529,6 +532,52 @@ Tile effects are processed each frame inside `Player.update()` via `TileEffectMa
 
 ---
 
+## SOLID Principles
+
+The codebase is organised around the five SOLID principles. The design patterns above are the concrete mechanisms that make them hold.
+
+### S — Single Responsibility
+Each class has one reason to change. Level orchestration, collision resolution, rendering and the HUD are deliberately split apart:
+
+| Class | Single responsibility |
+|-------|-----------------------|
+| `LevelManager` | Level lifecycle: load level, hold enemy list / lives, drive the update tick |
+| `CollisionManager` | Attack hits, body contacts and knockback resolution |
+| `LevelRenderer` | Camera clamping, tile culling, entity & goal drawing |
+| `HUD` | Hearts display |
+| `MapManager` | Parsing `maps.json` into `Map` objects |
+| `TileEffectManager` | Detecting which tile effects touch the player and ticking them |
+
+The screen classes follow the same rule — `MenuScreen`, `PauseScreen`, `GameOverScreen` and `LevelWonScreen` each own exactly one UI state.
+
+### O — Open/Closed
+New behaviour is added by **registering or implementing**, never by editing existing logic:
+
+- **Enemies** — `EntityFactory` holds a `Map<String, Creator>` registry; a new enemy is one `register(...)` call in the `Game` constructor. The factory itself never changes. Dragon colour variants (`dragon`, `dragon_blue`, `dragon_purple`) are registered the same way and selected from the map data.
+- **Assets** — `Assets.Init()` iterates a list of `AssetsFactory` implementations; adding `PlayerFactory`/`DragonFactory`/… requires no change to `Assets`.
+- **Tile effects** — `TileEffectManager` iterates a `List<TileEffect>`; a new hazard is a new `TileEffect` class.
+- **Level goals** — `Portal` and `Treasure` both implement `LevelGoal`; the level loader just picks one.
+- **Input routing** — `MouseHandler` dispatches through an `EnumMap<GameStates, Consumer<MouseEvent>>`.
+
+### L — Liskov Substitution
+Every `Entity` subtype (`Player`, `Dragon`, `Snake`) is used purely through the `Entity` contract. `LevelManager`, `CollisionManager` and `LevelRenderer` operate on `List<Entity>` and call `update`, `draw`, `takeDamage`, `getScreenHitbox`, `isDead` and `countsTowardLevelGoal` without ever down-casting — any new `Entity` slots in transparently. The "is this a level-goal blocker?" question is answered by the overridable `Entity.countsTowardLevelGoal()` (default `false`, `Dragon` returns `true`) rather than a type check.
+
+### I — Interface Segregation
+Interfaces are small and focused, so implementers never carry methods they don't need:
+
+- `Creator` — one method, `create(...)`
+- `AssetsFactory` — one method, `load(...)`
+- `TileEffect` — `getTileId`, `tick`, `reset`
+- `LevelGoal` — `draw`, `tryActivate`, `reset`, `isActivated`
+- `Screen` — `draw` plus a default no-op `handleClick`, so non-interactive screens stay clean
+
+### D — Dependency Inversion
+High-level modules depend on abstractions, not concretions. `LevelManager` knows only `Entity` and `LevelGoal`; `MapManager` produces entities purely from string types through `EntityFactory`, with no compile-time link to `Dragon` or `Snake`. There are **no `instanceof` casts** anywhere in `src`.
+
+**Deliberate exceptions (documented, not accidental):** the singletons (`Game`, `Player`, `LevelManager`, `MapManager`) and the global `Assets` registry are intentional global state — they trade some dependency-inversion purity for the convenience of reaching shared game state without threading it through every constructor. See the *Singleton* and *Registry (Service Locator)* sections above.
+
+---
+
 ## Project Structure
 
 ```
@@ -561,7 +610,8 @@ app/
 │   │   ├── assets/Assets.java           # Central image registry (static map)
 │   │   ├── assets/*Factory.java         # Per-category asset loaders
 │   │   ├── tiles/Tile.java              # Tile constants (64×64 px)
-│   │   └── utils/SpriteSheet.java       # Sprite sheet cropper
+│   │   ├── utils/SpriteSheet.java       # Sprite sheet cropper
+│   │   └── utils/ImageLoader.java       # Image file loading helper
 │   ├── screen/
 │   │   ├── Screen.java                  # Interface — draw() + default no-op handleClick()
 │   │   ├── PlayingScreen.java           # Background fill + levelManager.draw()
@@ -661,9 +711,6 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 ## Possible future improvements
 
 ### Game features
-- [ ] **Fix level 3 map** — tile layout and enemy placement need rework
 - [ ] Add sound effects and background music
 - [ ] Add dragon attack animation 
 
-### SOLID refactoring
-- [ ] **DIP** — `LevelManager` depends on concrete `Player`, `Dragon`, `Snake`; introduce abstractions (e.g. reference enemies as `List<Entity>` everywhere and avoid `instanceof Dragon` casts)
