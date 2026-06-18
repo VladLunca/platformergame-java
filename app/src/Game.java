@@ -1,6 +1,7 @@
 import entity.EntityFactory;
 import entity.enamy.Dragon;
 import entity.enamy.Snake;
+import entity.utils.DragonTypes;
 import gamewindow.GameWindow;
 import graphics.assets.Assets;
 import handle.KeyHandler;
@@ -13,7 +14,6 @@ import utils.GameStates;
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
-import java.util.Objects;
 import static gamewindow.GameWindow.createGameWindow;
 
 public class Game implements Runnable {
@@ -35,8 +35,10 @@ public class Game implements Runnable {
     private Game(String title, int width, int height) throws IOException {
         wnd = createGameWindow(title, width, height);
         runState = false;
-        EntityFactory.register("snake",  (x, y, h, p) -> new Snake(x, y, h, p));
-        EntityFactory.register("dragon", (x, y, h, p) -> new Dragon(x, y, h));
+        EntityFactory.register("snake",         (x, y, h, p) -> new Snake(x, y, h, p));
+        EntityFactory.register("dragon",        (x, y, h, p) -> new Dragon(x, y, h, DragonTypes.GREEN));
+        EntityFactory.register("dragon_blue",   (x, y, h, p) -> new Dragon(x, y, h, DragonTypes.BLUE));
+        EntityFactory.register("dragon_purple", (x, y, h, p) -> new Dragon(x, y, h, DragonTypes.PURPLE));
         mapManager   = MapManager.createMapManager("/textures/maps/maps.json");
         levelManager = LevelManager.createLevelManager(mapManager);
 
@@ -48,18 +50,18 @@ public class Game implements Runnable {
     }
 
     public static Game createGame(String title, int width, int height) {
-        return Objects.requireNonNullElseGet(instance, () -> {
-            try {
-                synchronized (Game.class) {
-                    if (instance == null) {
+        if (instance == null) {
+            synchronized (Game.class) {
+                if (instance == null) {
+                    try {
                         instance = new Game(title, width, height);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
-            return instance;
-        });
+        }
+        return instance;
     }
 
     private void InitGame() {

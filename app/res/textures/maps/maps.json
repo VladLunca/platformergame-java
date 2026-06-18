@@ -60,7 +60,7 @@
     ],
     "gate": { "x": 50, "y": 13 },
     "enemies": [
-      { "type": "DRAGON", "x": 4,  "y": 7,  "lives": 5 },
+      { "type": "DRAGON_BLUE", "x": 4,  "y": 7,  "lives": 5 },
       { "type": "SNAKE",  "x": 8,  "y": 12, "lives": 3 },
       { "type": "SNAKE",  "x": 22, "y": 12, "lives": 3 },
       { "type": "SNAKE",  "x": 40, "y": 12, "lives": 4 }
@@ -96,7 +96,7 @@
       { "type": "SNAKE",  "x": 3,  "y": 12, "lives": 4 },
       { "type": "SNAKE",  "x": 10, "y": 12, "lives": 4 },
       { "type": "SNAKE",  "x": 22, "y": 8,  "lives": 4 },
-      { "type": "DRAGON", "x": 45, "y": 4,  "lives": 8 }
+      { "type": "DRAGON_PURPLE", "x": 45, "y": 4,  "lives": 8 }
     ]
   }
 }

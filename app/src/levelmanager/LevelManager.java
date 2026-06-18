@@ -1,8 +1,6 @@
 package levelmanager;
 
 import entity.Entity;
-import entity.enamy.Dragon;
-import entity.utils.DragonTypes;
 import entity.player.Player;
 import entity.prop.LevelGoal;
 import entity.prop.Portal;
@@ -19,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class LevelManager {
-    private static LevelManager instance = null;
+    private static volatile LevelManager instance = null;
     private MapManager mapManager;
     private int level = 1;
     private Player player;
@@ -40,7 +38,11 @@ public class LevelManager {
 
     public static LevelManager createLevelManager(MapManager mapManager) {
         if (instance == null) {
-            instance = new LevelManager(mapManager);
+            synchronized (LevelManager.class) {
+                if (instance == null) {
+                    instance = new LevelManager(mapManager);
+                }
+            }
         }
         return instance;
     }
@@ -58,11 +60,11 @@ public class LevelManager {
     public boolean isPlayerDead()    { return player != null && player.isDead(); }
 
     private boolean allDragonsDead() {
-        List<Entity> dragons = new ArrayList<>();
+        List<Entity> blockers = new ArrayList<>();
         for (Entity e : enemies) {
-            if (e instanceof Dragon) dragons.add(e);
+            if (e.countsTowardLevelGoal()) blockers.add(e);
         }
-        return !dragons.isEmpty() && dragons.stream().allMatch(Entity::isDead);
+        return !blockers.isEmpty() && blockers.stream().allMatch(Entity::isDead);
     }
 
     public void loadLevel() {
@@ -74,15 +76,6 @@ public class LevelManager {
         };
         currentMap = mapManager.getMap(mapName);
         enemies    = currentMap.getEnemies();
-
-        DragonTypes dragonType = switch (level) {
-            case 2  -> DragonTypes.BLUE;
-            case 3  -> DragonTypes.PURPLE;
-            default -> DragonTypes.GREEN;
-        };
-        for (Entity e : enemies) {
-            if (e instanceof Dragon d) d.setDragonType(dragonType);
-        }
 
         levelWon = false;
         goal = (level == 3)

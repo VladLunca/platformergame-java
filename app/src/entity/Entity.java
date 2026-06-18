@@ -66,6 +66,14 @@ public abstract class Entity {
         return health <= 0;
     }
 
+    /**
+     * Whether this entity must be defeated for the level goal to unlock.
+     * Defaults to {@code false}; goal-blocking entities override it.
+     */
+    public boolean countsTowardLevelGoal() {
+        return false;
+    }
+
     public int getDamage() {
         return damage;
     }

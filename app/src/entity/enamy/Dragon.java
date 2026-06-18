@@ -21,17 +21,18 @@ public class Dragon extends Entity {
     private static final float GRAVITY        = 0.5f;
     private static final float MAX_FALL_SPEED = 10f;
     private static final int offsetY=12;
-    private DragonTypes dragonType = DragonTypes.GREEN;
+    private final DragonTypes dragonType;
     private int   animationTimer = 0;
     private int   animFrame      = 0;
     private boolean facingLeft   = false;
     private float airSpeed       = 0f;
 
-    public Dragon(int mapx, int mapy, int health) {
+    public Dragon(int mapx, int mapy, int health, DragonTypes type) {
         super(mapx, mapy + offsetY, health);
         this.hitbox.setSize(80, 80);
         this.damage = 2;
         this.speed  = CHASE_SPEED;
+        this.dragonType = type;
     }
 
     @Override
@@ -157,7 +158,8 @@ public class Dragon extends Entity {
         airSpeed = 0f;
     }
 
-    public void setDragonType(DragonTypes type) {
-        this.dragonType = type;
+    @Override
+    public boolean countsTowardLevelGoal() {
+        return true;
     }
 }

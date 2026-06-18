@@ -21,14 +21,17 @@ import java.util.Objects;
 
 
 public class MapManager {
-    private static MapManager instance = null;// avem un singur map manager(Sablon Singletone)
+    private static volatile MapManager instance = null;// avem un singur map manager(Sablon Singletone)
     private static final java.util.Map<String, Map> MAPS = new HashMap<>();
     private final String FILE_NAME;
 
     public static MapManager createMapManager(String filePath) throws IOException {
         if (instance == null) {
-            instance = new
-                    MapManager(filePath);
+            synchronized (MapManager.class) {
+                if (instance == null) {
+                    instance = new MapManager(filePath);
+                }
+            }
         }
         return instance;
     }
