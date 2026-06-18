@@ -663,7 +663,7 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 ### Game features
 - [ ] **Fix level 3 map** — tile layout and enemy placement need rework
 - [ ] Add sound effects and background music
-- [ ] Add dragon attack animation and damage towards player
+- [ ] Add dragon attack animation 
 
 ### SOLID refactoring
 - [ ] **DIP** — `LevelManager` depends on concrete `Player`, `Dragon`, `Snake`; introduce abstractions (e.g. reference enemies as `List<Entity>` everywhere and avoid `instanceof Dragon` casts)
