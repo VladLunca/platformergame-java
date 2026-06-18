@@ -658,10 +658,9 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 
 ---
 
-## TODO
+## Possible future improvements
 
 ### Game features
-- [ ] **Fix level 2 map** — tile layout and enemy placement need rework
 - [ ] **Fix level 3 map** — tile layout and enemy placement need rework
 - [ ] Add sound effects and background music
 - [ ] Add dragon attack animation and damage towards player
