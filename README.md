@@ -712,5 +712,4 @@ A big thank you to **Segel T** for the charming Chibi Knight character, and to *
 
 ### Game features
 - [ ] Add sound effects and background music
-- [ ] Add dragon attack animation 
 
